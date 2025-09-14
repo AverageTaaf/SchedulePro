@@ -26,6 +26,22 @@
   --importance-3: #d63031;
 }
 
+#form-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s,
+    padding 0.4s, margin 0.4s;
+}
+#form-content {
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s,
+    padding 0.4s, margin 0.4s;
+  max-height: 2000px;
+  opacity: 1;
+}
+
 .light-mode {
   --bg: var(--bg-light);
   --text: var(--text-light);
@@ -59,6 +75,7 @@ body {
   margin: 0 auto;
 }
 
+/* Header Styles */
 header {
   display: flex;
   justify-content: space-between;
@@ -95,6 +112,7 @@ header {
   flex-wrap: wrap;
 }
 
+/* Button Styles */
 button {
   padding: 12px 24px;
   border: none;
@@ -162,6 +180,7 @@ select {
   cursor: pointer;
 }
 
+/* Task Grid */
 .task-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -196,6 +215,7 @@ select {
   min-height: 150px;
 }
 
+/* Task Widget */
 .task-widget {
   background-color: var(--bg);
   border-radius: var(--border-radius);
@@ -322,6 +342,7 @@ select {
   font-size: 0.85rem;
 }
 
+/* Expanded Task View */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -440,6 +461,7 @@ select {
   margin-top: 30px;
 }
 
+/* Form Styles */
 .task-form {
   background-color: var(--card);
   border-radius: var(--border-radius);
@@ -504,6 +526,7 @@ select {
   gap: 20px;
 }
 
+/* Importance Selector */
 .importance-selector {
   display: flex;
   gap: 10px;
@@ -531,6 +554,13 @@ select {
   transform: translateY(-3px);
 }
 
+/* Form content with transition */
+#form-content {
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  overflow: hidden;
+}
+
+/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -567,6 +597,7 @@ select {
   animation: fadeIn 0.5s ease;
 }
 
+/* Responsive Design */
 @media (max-width: 1200px) {
   .task-grid {
     grid-template-columns: 1fr 1fr;
@@ -612,6 +643,7 @@ select {
   }
 }
 
+/* Notification */
 .notification {
   position: fixed;
   bottom: 25px;
@@ -629,6 +661,7 @@ select {
   transition: all 0.4s ease;
   z-index: 1001;
   max-width: 400px;
+  animation: slideIn 0.5s ease;
 }
 
 .notification.show {
@@ -642,6 +675,7 @@ select {
   padding: 8px 15px;
 }
 
+/* Drag and Drop */
 .task-widget.dragging {
   opacity: 0.7;
   transform: rotate(5deg);
@@ -654,6 +688,7 @@ select {
   transform: scale(1.02);
 }
 
+/* Empty state */
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -668,6 +703,7 @@ select {
   opacity: 0.5;
 }
 
+/* Stats section */
 .stats {
   display: flex;
   justify-content: space-around;
@@ -699,6 +735,7 @@ select {
   color: var(--text);
 }
 
+/* Due date indicator */
 .due-soon {
   animation: pulse 2s infinite;
   border-left-color: var(--warning) !important;
@@ -708,6 +745,7 @@ select {
   border-left-color: var(--danger) !important;
 }
 
+/* Importance labels */
 .importance-label {
   padding: 3px 10px;
   border-radius: 12px;
@@ -731,6 +769,7 @@ select {
   color: white;
 }
 
+/* Quick actions */
 .quick-actions {
   display: flex;
   gap: 15px;
