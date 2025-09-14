@@ -1,3 +1,4 @@
+// DOM Elements
 const modeToggle = document.getElementById("mode-toggle");
 const sortSelect = document.getElementById("sort-select");
 const addTaskBtn = document.getElementById("add-task");
@@ -45,30 +46,58 @@ const todoList = document.getElementById("todo-list");
 const inProgressList = document.getElementById("in-progress-list");
 const doneList = document.getElementById("done-list");
 
+// State
 let tasks = JSON.parse(localStorage.getItem("schedulepro-tasks")) || [];
 let currentEditingTaskId = null;
 let currentImportance = 1;
 let darkMode = localStorage.getItem("schedulepro-darkmode") === "true";
 let formCollapsed = false;
 
+// Initialize
 function init() {
+  // Set dark mode if enabled
   if (darkMode) {
     document.body.classList.remove("light-mode");
     document.body.classList.add("dark-mode");
     modeToggle.textContent = "☀️";
   }
 
+  // Set today's date as default for due date
   const today = new Date().toISOString().split("T")[0];
   taskDueDate.value = today;
   taskDueDate.min = today;
 
+  // Load tasks
   renderTasks();
 
+  // Check for overdue tasks
   checkOverdueTasks();
 
+  // Update stats
   updateStats();
 
+  // Set up event listeners
   setupEventListeners();
+
+  // Initialize form as expanded
+  formContent.style.maxHeight = formContent.scrollHeight + "px";
+}
+
+// Toggle form visibility with animation
+function toggleForm() {
+  if (formContent.style.maxHeight) {
+    // Form is expanded, so collapse it
+    formContent.style.maxHeight = null;
+    formContent.style.opacity = "0";
+    formContent.style.pointerEvents = "none";
+    toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i>Expand';
+  } else {
+    // Form is collapsed, so expand it
+    formContent.style.maxHeight = formContent.scrollHeight + "px";
+    formContent.style.opacity = "1";
+    formContent.style.pointerEvents = "all";
+    toggleFormBtn.innerHTML = '<i class="fas fa-minus"></i>Collapse';
+  }
 }
 
 // Set up event listeners
@@ -100,11 +129,14 @@ function setupEventListeners() {
   showCompletedBtn.addEventListener("click", () => filterTasks("completed"));
   clearCompletedBtn.addEventListener("click", clearCompletedTasks);
 
+  // Drag and drop for tasks
   setupDragAndDrop();
 
+  // Check for overdue tasks on page load
   window.addEventListener("load", checkOverdueTasks);
 }
 
+// Setup drag and drop
 function setupDragAndDrop() {
   const taskLists = document.querySelectorAll(".task-list");
 
@@ -127,6 +159,7 @@ function setupDragAndDrop() {
       const taskId = document.querySelector(".dragging").dataset.id;
       const newStatus = list.parentElement.dataset.status;
 
+      // Update task status
       const taskIndex = tasks.findIndex((t) => t.id === taskId);
       if (taskIndex !== -1) {
         tasks[taskIndex].status = newStatus;
@@ -138,6 +171,7 @@ function setupDragAndDrop() {
   });
 }
 
+// Get drag after element
 function getDragAfterElement(container, y) {
   const draggableElements = [
     ...container.querySelectorAll(".task-widget:not(.dragging)"),
@@ -158,18 +192,7 @@ function getDragAfterElement(container, y) {
   ).element;
 }
 
-function toggleForm() {
-  formCollapsed = !formCollapsed;
-
-  if (formCollapsed) {
-    formContent.style.display = "none";
-    toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i>Expand';
-  } else {
-    formContent.style.display = "block";
-    toggleFormBtn.innerHTML = '<i class="fas fa-minus"></i>Collapse';
-  }
-}
-
+// Filter tasks
 function filterTasks(filter) {
   const taskWidgets = document.querySelectorAll(".task-widget");
 
@@ -187,6 +210,7 @@ function filterTasks(filter) {
   });
 }
 
+// Clear completed tasks
 function clearCompletedTasks() {
   if (
     confirm(
@@ -202,6 +226,7 @@ function clearCompletedTasks() {
   }
 }
 
+// Update stats
 function updateStats() {
   const total = tasks.length;
   const completed = tasks.filter((t) => t.status === "done").length;
@@ -218,6 +243,7 @@ function updateStats() {
   overdueTasksEl.textContent = overdue;
 }
 
+// Toggle dark mode
 function toggleDarkMode() {
   darkMode = !darkMode;
 
@@ -234,6 +260,7 @@ function toggleDarkMode() {
   localStorage.setItem("schedulepro-darkmode", darkMode);
 }
 
+// Add new task
 function addTask() {
   if (!taskTitle.value.trim()) {
     showNotification("Task title is required!", "error");
@@ -267,6 +294,7 @@ function addTask() {
   showNotification("Task added successfully!", "success");
 }
 
+// Save task (update existing)
 function saveTask() {
   if (!currentEditingTaskId) return;
 
@@ -279,6 +307,7 @@ function saveTask() {
   tasks[taskIndex].difficulty = taskDifficulty.value;
   tasks[taskIndex].importance = currentImportance;
 
+  // Update checkpoints
   const checkpoints = taskCheckpoints.value
     .split("\n")
     .filter((line) => line.trim())
@@ -293,12 +322,14 @@ function saveTask() {
   showNotification("Task updated successfully!", "success");
 }
 
+// Update task from modal
 function updateTask() {
   if (!currentEditingTaskId) return;
 
   const taskIndex = tasks.findIndex((t) => t.id === currentEditingTaskId);
   if (taskIndex === -1) return;
 
+  // Update checkpoints
   const checkpointInputs = modalCheckpoints.querySelectorAll(
     'input[type="checkbox"]'
   );
@@ -311,6 +342,7 @@ function updateTask() {
     })
   );
 
+  // Update progress
   const completed = tasks[taskIndex].checkpoints.filter(
     (c) => c.completed
   ).length;
@@ -318,8 +350,10 @@ function updateTask() {
   tasks[taskIndex].progress =
     total > 0 ? Math.round((completed / total) * 100) : 0;
 
+  // Update difficulty
   tasks[taskIndex].difficulty = modalDifficultySelect.value;
 
+  // Update importance
   const selectedImportance = modalImportanceSelector.querySelector(".selected");
   if (selectedImportance) {
     tasks[taskIndex].importance = parseInt(
@@ -335,6 +369,7 @@ function updateTask() {
   showNotification("Task updated successfully!", "success");
 }
 
+// Delete task
 function deleteTask() {
   if (!currentEditingTaskId) return;
 
@@ -353,12 +388,14 @@ function deleteTask() {
   }
 }
 
+// Open task modal
 function openTaskModal(taskId) {
   const task = tasks.find((t) => t.id === taskId);
   if (!task) return;
 
   currentEditingTaskId = taskId;
 
+  // Populate modal
   modalTitle.textContent = task.title;
   modalDueDate.textContent = `Due: ${formatDate(task.dueDate)}`;
   modalDifficulty.textContent =
@@ -370,8 +407,10 @@ function openTaskModal(taskId) {
   modalProgressBar.style.width = `${task.progress}%`;
   modalProgressText.textContent = `${task.progress}%`;
 
+  // Set difficulty select
   modalDifficultySelect.value = task.difficulty;
 
+  // Set importance
   const importanceOptions =
     modalImportanceSelector.querySelectorAll(".importance-option");
   importanceOptions.forEach((option) => {
@@ -381,6 +420,7 @@ function openTaskModal(taskId) {
     }
   });
 
+  // Populate checkpoints
   modalCheckpoints.innerHTML = "";
   task.checkpoints.forEach((checkpoint) => {
     const checkpointDiv = document.createElement("div");
@@ -400,24 +440,29 @@ function openTaskModal(taskId) {
     modalCheckpoints.appendChild(checkpointDiv);
   });
 
+  // Show modal
   taskModalOverlay.classList.add("active");
 }
 
+// Close task modal
 function closeTaskModal() {
   taskModalOverlay.classList.remove("active");
   currentEditingTaskId = null;
 }
 
+// Reset form
 function resetForm() {
   taskTitle.value = "";
   taskDescription.value = "";
 
+  // Set today's date as default for due date
   const today = new Date().toISOString().split("T")[0];
   taskDueDate.value = today;
 
   taskDifficulty.value = "easy";
   taskCheckpoints.value = "";
 
+  // Reset importance to default
   importanceOptions.forEach((option) => {
     option.classList.remove("selected");
     if (parseInt(option.dataset.importance) === 1) {
@@ -430,6 +475,7 @@ function resetForm() {
   currentEditingTaskId = null;
 }
 
+// Edit task (populate form)
 function editTask(taskId, e) {
   if (e) e.stopPropagation();
 
@@ -444,6 +490,7 @@ function editTask(taskId, e) {
   taskDifficulty.value = task.difficulty;
   taskCheckpoints.value = task.checkpoints.map((c) => c.text).join("\n");
 
+  // Set importance
   importanceOptions.forEach((option) => {
     option.classList.remove("selected");
     if (parseInt(option.dataset.importance) === task.importance) {
@@ -454,20 +501,26 @@ function editTask(taskId, e) {
 
   saveTaskBtn.disabled = false;
 
+  // Scroll to form
   document.querySelector(".task-form").scrollIntoView({ behavior: "smooth" });
 
-  if (formCollapsed) {
+  // Expand form if collapsed
+  if (!formContent.style.maxHeight) {
     toggleForm();
   }
 }
 
+// Render tasks
 function renderTasks() {
+  // Clear lists
   todoList.innerHTML = "";
   inProgressList.innerHTML = "";
   doneList.innerHTML = "";
 
+  // Sort tasks
   const sortedTasks = sortTasks(tasks);
 
+  // Check if we have any tasks at all
   if (sortedTasks.length === 0) {
     todoList.innerHTML = `
                     <div class="empty-state">
@@ -490,10 +543,12 @@ function renderTasks() {
     return;
   }
 
+  // Count tasks for each category
   const todoTasks = sortedTasks.filter((t) => t.status === "todo");
   const inProgressTasks = sortedTasks.filter((t) => t.status === "in-progress");
   const doneTasks = sortedTasks.filter((t) => t.status === "done");
 
+  // Render empty states if no tasks in a category
   if (todoTasks.length === 0) {
     todoList.innerHTML = `
                     <div class="empty-state">
@@ -521,6 +576,7 @@ function renderTasks() {
                 `;
   }
 
+  // Render tasks
   sortedTasks.forEach((task) => {
     const taskElement = createTaskElement(task);
 
@@ -533,6 +589,7 @@ function renderTasks() {
     }
   });
 
+  // Add drag and drop to tasks
   const taskWidgets = document.querySelectorAll(".task-widget");
   taskWidgets.forEach((widget) => {
     widget.setAttribute("draggable", true);
@@ -546,6 +603,7 @@ function renderTasks() {
     });
   });
 
+  // Add drop zones to categories
   const categories = document.querySelectorAll(".category");
   categories.forEach((category) => {
     category.addEventListener("dragover", (e) => {
@@ -564,11 +622,13 @@ function renderTasks() {
   });
 }
 
+// Create task element
 function createTaskElement(task) {
   const taskElement = document.createElement("div");
   taskElement.className = "task-widget";
   taskElement.dataset.id = task.id;
 
+  // Check if task is overdue or due soon
   const today = new Date();
   const dueDate = new Date(task.dueDate);
   const isOverdue = dueDate < today && task.status !== "done";
@@ -577,6 +637,7 @@ function createTaskElement(task) {
     dueDate < new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000) &&
     task.status !== "done";
 
+  // Create importance indicator
   let importanceDots = "";
   for (let i = 0; i < 3; i++) {
     importanceDots += `<div class="importance-dot"></div>`;
@@ -620,6 +681,7 @@ function createTaskElement(task) {
     taskElement.classList.add("due-soon");
   }
 
+  // Add event listeners
   taskElement.addEventListener("click", () => openTaskModal(task.id));
   taskElement
     .querySelector(".edit-task")
@@ -628,6 +690,7 @@ function createTaskElement(task) {
   return taskElement;
 }
 
+// Sort tasks
 function sortTasks(tasks) {
   const sortValue = sortSelect.value;
 
@@ -655,10 +718,12 @@ function sortTasks(tasks) {
   });
 }
 
+// Save tasks to localStorage
 function saveTasks() {
   localStorage.setItem("schedulepro-tasks", JSON.stringify(tasks));
 }
 
+// Check for overdue tasks
 function checkOverdueTasks() {
   const today = new Date();
   const overdueTasks = tasks.filter((task) => {
@@ -674,9 +739,11 @@ function checkOverdueTasks() {
   }
 }
 
+// Show notification
 function showNotification(message, type) {
   notificationMessage.textContent = message;
 
+  // Set notification color based on type
   if (type === "error") {
     notification.style.backgroundColor = "var(--danger)";
     notificationIcon.className = "fas fa-exclamation-circle";
@@ -694,14 +761,28 @@ function showNotification(message, type) {
 
   notification.classList.add("show");
 
+  // Auto hide after 5 seconds
   setTimeout(() => {
     notification.classList.remove("show");
   }, 5000);
 }
 
+// Format date
 function formatDate(dateString) {
   const options = { year: "numeric", month: "short", day: "numeric" };
   return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
+function toggleForm() {
+  formCollapsed = !formCollapsed;
+  if (formCollapsed) {
+    formContent.classList.add("collapsed");
+    toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i>Expand';
+  } else {
+    formContent.classList.remove("collapsed");
+    toggleFormBtn.innerHTML = '<i class="fas fa-minus"></i>Collapse';
+  }
+}
+
+// Initialize the app
 init();
