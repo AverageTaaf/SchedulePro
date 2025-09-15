@@ -832,3 +832,19 @@ body.dark-mode .credits {
   color: var(--secondary);
   box-shadow: var(--shadow-hover);
 }
+
+#form-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s,
+    padding 0.4s, margin 0.4s;
+}
+#form-content {
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s,
+    padding 0.4s, margin 0.4s;
+  max-height: 2000px;
+  opacity: 1;
+}
