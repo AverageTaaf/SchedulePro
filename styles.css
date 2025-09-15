@@ -26,22 +26,6 @@
   --importance-3: #d63031;
 }
 
-#form-content.collapsed {
-  max-height: 0 !important;
-  opacity: 0;
-  overflow: hidden;
-  padding: 0 !important;
-  margin: 0 !important;
-  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s,
-    padding 0.4s, margin 0.4s;
-}
-#form-content {
-  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s,
-    padding 0.4s, margin 0.4s;
-  max-height: 2000px;
-  opacity: 1;
-}
-
 .light-mode {
   --bg: var(--bg-light);
   --text: var(--text-light);
@@ -560,6 +544,51 @@ select {
   overflow: hidden;
 }
 
+/* Help Modal */
+.help-modal {
+  background-color: var(--card);
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 35px;
+  position: relative;
+}
+
+.help-modal h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: var(--primary);
+  font-size: 2.2rem;
+}
+
+.help-content {
+  line-height: 1.8;
+}
+
+.help-content h3 {
+  margin: 20px 0 10px;
+  color: var(--primary);
+}
+
+.help-content ol {
+  padding-left: 25px;
+  margin-bottom: 20px;
+}
+
+.help-content li {
+  margin-bottom: 15px;
+}
+
+.signature {
+  text-align: right;
+  margin-top: 30px;
+  font-style: italic;
+  color: var(--primary);
+  font-weight: 600;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -661,7 +690,6 @@ select {
   transition: all 0.4s ease;
   z-index: 1001;
   max-width: 400px;
-  animation: slideIn 0.5s ease;
 }
 
 .notification.show {
