@@ -9,7 +9,9 @@ const taskDescription = document.getElementById("task-description");
 const taskDifficulty = document.getElementById("task-difficulty");
 const taskCheckpoints = document.getElementById("task-checkpoints");
 const taskModalOverlay = document.getElementById("task-modal-overlay");
+const helpModalOverlay = document.getElementById("help-modal-overlay");
 const closeModal = document.getElementById("close-modal");
+const closeHelpModal = document.getElementById("close-help-modal");
 const deleteTaskBtn = document.getElementById("delete-task");
 const saveChangesBtn = document.getElementById("save-changes");
 const modalTitle = document.getElementById("modal-title");
@@ -41,6 +43,7 @@ const showAllBtn = document.getElementById("show-all");
 const showActiveBtn = document.getElementById("show-active");
 const showCompletedBtn = document.getElementById("show-completed");
 const clearCompletedBtn = document.getElementById("clear-completed");
+const helpBtn = document.getElementById("help-btn");
 
 const todoList = document.getElementById("todo-list");
 const inProgressList = document.getElementById("in-progress-list");
@@ -107,12 +110,14 @@ function setupEventListeners() {
   addTaskBtn.addEventListener("click", addTask);
   saveTaskBtn.addEventListener("click", saveTask);
   closeModal.addEventListener("click", closeTaskModal);
+  closeHelpModal.addEventListener("click", closeHelpModalWindow);
   deleteTaskBtn.addEventListener("click", deleteTask);
   saveChangesBtn.addEventListener("click", updateTask);
   notificationAction.addEventListener("click", () =>
     notification.classList.remove("show")
   );
   toggleFormBtn.addEventListener("click", toggleForm);
+  helpBtn.addEventListener("click", openHelpModal);
 
   // Importance selection
   importanceOptions.forEach((option) => {
@@ -134,6 +139,16 @@ function setupEventListeners() {
 
   // Check for overdue tasks on page load
   window.addEventListener("load", checkOverdueTasks);
+}
+
+// Open help modal
+function openHelpModal() {
+  helpModalOverlay.classList.add("active");
+}
+
+// Close help modal
+function closeHelpModalWindow() {
+  helpModalOverlay.classList.remove("active");
 }
 
 // Setup drag and drop
@@ -361,6 +376,15 @@ function updateTask() {
     );
   }
 
+  // Auto-update task status based on progress
+  if (tasks[taskIndex].progress === 100) {
+    tasks[taskIndex].status = "done";
+  } else if (tasks[taskIndex].progress > 0) {
+    tasks[taskIndex].status = "in-progress";
+  } else {
+    tasks[taskIndex].status = "todo";
+  }
+
   saveTasks();
   renderTasks();
   closeTaskModal();
@@ -430,6 +454,27 @@ function openTaskModal(taskId) {
     input.type = "checkbox";
     input.id = `checkpoint-${Date.now()}-${Math.random()}`;
     input.checked = checkpoint.completed;
+    input.addEventListener("change", () => {
+      // Update task status when checkpoints are changed
+      const completed =
+        modalCheckpoints.querySelectorAll("input:checked").length;
+      const total = modalCheckpoints.querySelectorAll("input").length;
+
+      if (completed === total && total > 0) {
+        // All checkpoints completed - move to done
+        tasks.find((t) => t.id === taskId).status = "done";
+      } else if (completed > 0) {
+        // Some checkpoints completed - move to in-progress
+        tasks.find((t) => t.id === taskId).status = "in-progress";
+      } else {
+        // No checkpoints completed - move to todo
+        tasks.find((t) => t.id === taskId).status = "todo";
+      }
+
+      saveTasks();
+      renderTasks();
+      updateStats();
+    });
 
     const label = document.createElement("label");
     label.htmlFor = input.id;
@@ -771,17 +816,6 @@ function showNotification(message, type) {
 function formatDate(dateString) {
   const options = { year: "numeric", month: "short", day: "numeric" };
   return new Date(dateString).toLocaleDateString(undefined, options);
-}
-
-function toggleForm() {
-  formCollapsed = !formCollapsed;
-  if (formCollapsed) {
-    formContent.classList.add("collapsed");
-    toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i>Expand';
-  } else {
-    formContent.classList.remove("collapsed");
-    toggleFormBtn.innerHTML = '<i class="fas fa-minus"></i>Collapse';
-  }
 }
 
 // Initialize the app
