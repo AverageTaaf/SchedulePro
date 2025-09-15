@@ -784,6 +784,17 @@ function checkOverdueTasks() {
   }
 }
 
+function toggleForm() {
+  formCollapsed = !formCollapsed;
+  if (formCollapsed) {
+    formContent.classList.add("collapsed");
+    toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i>Expand';
+  } else {
+    formContent.classList.remove("collapsed");
+    toggleFormBtn.innerHTML = '<i class="fas fa-minus"></i>Collapse';
+  }
+}
+
 // Show notification
 function showNotification(message, type) {
   notificationMessage.textContent = message;
