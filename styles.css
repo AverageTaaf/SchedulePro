@@ -812,7 +812,7 @@ select {
 }
 
 /* Credits styling for both light and dark mode */
-.credits {
+footer {
   text-align: center;
   margin-top: 40px;
   margin-bottom: 10px;
@@ -827,10 +827,14 @@ select {
   transition: background-color 0.4s, color 0.4s;
 }
 
-body.dark-mode .credits {
+body.dark-mode footer {
   background-color: var(--card-dark);
   color: var(--secondary);
   box-shadow: var(--shadow-hover);
+}
+
+body.dark-mode a {
+  color: var(--secondary);
 }
 
 #form-content.collapsed {
