@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SchedulePro - Task Scheduler</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="light-mode">
+    <div class="container">
+      <header>
+        <h1 class="title"><i class="fas fa-tasks"></i>SchedulePro</h1>
+        <div class="controls">
+          <select id="sort-select">
+            <option value="date-added-asc">Date Added: Low → High</option>
+            <option value="date-added-desc">Date Added: High → Low</option>
+            <option value="importance-asc">Importance: Low → High</option>
+            <option value="importance-desc">Importance: High → Low</option>
+            <option value="progress-asc">Progress: Low → High</option>
+            <option value="progress-desc">Progress: High → Low</option>
+            <option value="due-date-asc">Due Date: Soonest</option>
+            <option value="due-date-desc">Due Date: Farthest</option>
+          </select>
+          <button class="btn-info" id="help-btn">
+            <i class="fas fa-question-circle"></i>Help
+          </button>
+          <button class="btn-primary" id="auth-btn">
+            <i class="fas fa-user"></i>Login
+          </button>
+          <button class="mode-toggle" id="mode-toggle">🌙</button>
+        </div>
+      </header>
+
+      <div class="stats">
+        <div class="stat-card">
+          <h3>Total Tasks</h3>
+          <div class="stat-value" id="total-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Completed</h3>
+          <div class="stat-value" id="completed-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>In Progress</h3>
+          <div class="stat-value" id="inprogress-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Overdue</h3>
+          <div class="stat-value" id="overdue-tasks">0</div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="btn-primary" id="show-all">
+          <i class="fas fa-eye"></i>Show All
+        </button>
+        <button class="btn-info" id="show-active">
+          <i class="fas fa-running"></i>Show Active
+        </button>
+        <button class="btn-success" id="show-completed">
+          <i class="fas fa-check-circle"></i>Show Completed
+        </button>
+        <button class="btn-danger" id="clear-completed">
+          <i class="fas fa-trash"></i>Clear Completed
+        </button>
+      </div>
+
+      <div class="task-form">
+        <div class="form-header">
+          <h2>Add New Task</h2>
+          <button class="btn-info" id="toggle-form">
+            <i class="fas fa-minus"></i>Collapse
+          </button>
+        </div>
+        <div id="form-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-title"
+                ><i class="fas fa-heading"></i> Task Title</label
+              >
+              <input
+                type="text"
+                id="task-title"
+                placeholder="Enter task title"
+              />
+            </div>
+            <div class="form-group">
+              <label for="task-due-date"
+                ><i class="fas fa-calendar-day"></i> Due Date</label
+              >
+              <input type="date" id="task-due-date" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="task-description"
+              ><i class="fas fa-align-left"></i> Description</label
+            >
+            <textarea
+              id="task-description"
+              placeholder="Enter task description"
+            ></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-difficulty"
+                ><i class="fas fa-fire"></i> Difficulty</label
+              >
+              <select id="task-difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label
+                ><i class="fas fa-exclamation-circle"></i> Importance</label
+              >
+              <div class="importance-selector">
+                <div class="importance-option selected" data-importance="1">
+                  Low
+                </div>
+                <div class="importance-option" data-importance="2">Medium</div>
+                <div class="importance-option" data-importance="3">High</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="task-checkpoints"
+              ><i class="fas fa-check-square"></i> Checkpoints (one per
+              line)</label
+            >
+            <textarea
+              id="task-checkpoints"
+              placeholder="Enter checkpoints, one per line"
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="add-task">
+              <i class="fas fa-plus"></i>Add Task
+            </button>
+            <button class="btn-success" id="save-task" disabled>
+              <i class="fas fa-save"></i>Save Task
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="task-grid">
+        <div class="category" data-status="todo">
+          <h2><i class="fas fa-clipboard-list"></i> To-Do</h2>
+          <div class="task-list" id="todo-list">
+            <div class="empty-state">
+              <i class="fas fa-clipboard-list"></i>
+              <p>No tasks to do. Add a new task!</p>
+            </div>
+          </div>
+        </div>
+        <div class="category" data-status="in-progress">
+          <h2><i class="fas fa-spinner"></i> In Progress</h2>
+          <div class="task-list" id="in-progress-list">
+            <div class="empty-state">
+              <i class="fas fa-spinner"></i>
+              <p>No tasks in progress</p>
+            </div>
+          </div>
+        </div>
+        <div class="category" data-status="done">
+          <h2><i class="fas fa-check-circle"></i> Done</h2>
+          <div class="task-list" id="done-list">
+            <div class="empty-state">
+              <i class="fas fa-check-circle"></i>
+              <p>No tasks completed yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="task-modal-overlay">
+      <div class="task-modal">
+        <button class="close-modal" id="close-modal">×</button>
+        <h2 id="modal-title"></h2>
+        <div class="task-meta">
+          <span id="modal-due-date"></span>
+          <span class="difficulty" id="modal-difficulty"></span>
+          <span class="importance-label" id="modal-importance"></span>
+        </div>
+        <p id="modal-description"></p>
+
+        <div class="progress-container">
+          <div class="progress-bar" id="modal-progress-bar"></div>
+        </div>
+        <div class="progress-text">
+          <span>Progress</span>
+          <span id="modal-progress-text">0%</span>
+        </div>
+
+        <div class="checkpoints" id="modal-checkpoints"></div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modal-difficulty-select">Difficulty</label>
+            <select id="modal-difficulty-select">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Importance</label>
+            <div class="importance-selector" id="modal-importance-selector">
+              <div class="importance-option" data-importance="1">Low</div>
+              <div class="importance-option" data-importance="2">Medium</div>
+              <div class="importance-option" data-importance="3">High</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-danger" id="delete-task">
+            <i class="fas fa-trash"></i>Delete Task
+          </button>
+          <button class="btn-success" id="save-changes">
+            <i class="fas fa-save"></i>Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="help-modal-overlay">
+      <div class="help-modal">
+        <button class="close-modal" id="close-help-modal">×</button>
+        <h2><i class="fas fa-question-circle"></i> Help Guide</h2>
+        <div class="help-content">
+          <p>
+            Hey there! Welcome to the "HELP" page. Here, you can see how each
+            and every function of this website works.
+          </p>
+
+          <ol>
+            <li>
+              From the dropdown menu on the top right side, you can sort how
+              your tasks are displayed. The buttons are pretty-much self
+              explanatory.
+            </li>
+            <li>
+              On the top right corner, there is an icon showing moon/sun.
+              Clicking them will switch between light and dark mode. (This saves
+              to database so you don't have to worry about changing it every
+              time you visit the site)
+            </li>
+            <li>
+              Below it are stats. These stats show total tasks/pending
+              tasks/completed tasks/overdue.
+            </li>
+            <li>
+              Under that, there are quick action buttons. You can either show
+              all/active/completed tasks or even delete every completed task at
+              once by clicking the "Clear Completed" button. (clear completed
+              will never delete pending tasks, don't worry)
+            </li>
+            <li>
+              Beneath it is an important category, the "Add New Task". This is
+              mainly the heart of the website. Beside the text is a button
+              either saying "Collapse" or "Expand". When it is pressed, the
+              category will open or close. (It has an animation, so please don't
+              spam the button or it might glitch). It has: Task Title, Due Date,
+              Description, Difficulty, Importance, Checkpoints. For the
+              checkpoints part, you MUST add at least one or else the system
+              which automatically moves tasks from "To-do" to either "In
+              Progress" or "Completed" won't work and you'd have to drag and
+              drop it manually. In order to add new checkpoints, you have to
+              create a new line. In pc/laptop, you can hit enter and it'll
+              create new lines. Each line is a new checkpoint.
+            </li>
+            <li>
+              Finally, the main purpose of the website, the tasks. This is where
+              every single one of your tasks are displayed in the corresponding
+              tabs. Please note that, tasks can be dragged and dropped from one
+              tab to another. If you click on a task, it will expand and show
+              details. If you click the edit button on the task, it will display
+              your task in the "Add New Task" category. From there, you can edit
+              anything you need and then hit save.
+            </li>
+          </ol>
+
+          <p>
+            Do remember, every single necessary function saves to the database.
+            So, you don't have to worry about your tasks being magically
+            disappeared.
+          </p>
+
+          <p>This was all, thank you so much for visiting the site.</p>
+
+          <div class="signature">
+            Warm regards,<br />
+            Taafeef Bin Montaquim.<br />
+            Happy Tasking!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification" id="notification">
+      <i class="fas fa-bell" id="notification-icon"></i>
+      <span id="notification-message"></span>
+      <button id="notification-action">Okay</button>
+    </div>
+
+    <footer>
+      <p class="credits">Taafeef Bin Montaquim || All Rights Reserved</p>
+      <p class="otherWebsite">
+        Check my other websites:
+        <br />
+        <a href="https://typemaster-ai.netlify.app/">typemaster-ai.com</a>
+        <br />
+        <a href="https://weatherify-ai.netlify.app/">weatherify-ai.com</a>
+      </p>
+    </footer>
+    <div class="modal-overlay" id="auth-modal-overlay">
+      <div class="auth-modal">
+        <button class="close-modal" id="close-auth-modal">×</button>
+        <div class="auth-tabs">
+          <div class="auth-tab active" data-tab="login">Login</div>
+          <div class="auth-tab" data-tab="signup">Sign Up</div>
+        </div>
+
+        <div class="auth-content" id="login-content">
+          <div class="form-group">
+            <label for="login-email"
+              ><i class="fas fa-envelope"></i> Email</label
+            >
+            <input
+              type="email"
+              id="login-email"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div class="form-group">
+            <label for="login-password"
+              ><i class="fas fa-lock"></i> Password</label
+            >
+            <input
+              type="password"
+              id="login-password"
+              placeholder="Enter your password"
+            />
+          </div>
+          <button class="btn-primary" id="login-btn">Login</button>
+          <div class="auth-divider">or</div>
+          <button class="btn-google" id="google-login">
+            <i class="fab fa-google"></i> Sign in with Google
+          </button>
+        </div>
+
+        <div class="auth-content hidden" id="signup-content">
+          <div class="form-group">
+            <label for="signup-username"
+              ><i class="fas fa-user"></i> Username</label
+            >
+            <input
+              type="text"
+              id="signup-username"
+              placeholder="Choose a username"
+            />
+          </div>
+          <div class="form-group">
+            <label for="signup-email"
+              ><i class="fas fa-envelope"></i> Email</label
+            >
+            <input
+              type="email"
+              id="signup-email"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div class="form-group">
+            <label for="signup-password"
+              ><i class="fas fa-lock"></i> Password</label
+            >
+            <input
+              type="password"
+              id="signup-password"
+              placeholder="Create a password"
+            />
+            <div class="password-requirements">
+              <p>Password must contain:</p>
+              <ul>
+                <li id="req-length">Minimum 8 characters</li>
+                <li id="req-upper">Uppercase letter</li>
+                <li id="req-lower">Lowercase letter</li>
+                <li id="req-number">Number</li>
+                <li id="req-special">Special character</li>
+              </ul>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm"
+              ><i class="fas fa-lock"></i> Confirm Password</label
+            >
+            <input
+              type="password"
+              id="signup-confirm"
+              placeholder="Confirm your password"
+            />
+          </div>
+          <button class="btn-primary" id="signup-btn">Sign Up</button>
+          <div class="auth-divider">or</div>
+          <button class="btn-google" id="google-signup">
+            <i class="fab fa-google"></i> Sign up with Google
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="user-modal-overlay">
+      <div class="user-modal">
+        <button class="close-modal" id="close-user-modal">×</button>
+        <div class="user-info">
+          <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <h3 id="user-display-name">Username</h3>
+          <p id="user-email">user@example.com</p>
+        </div>
+        <div class="user-actions">
+          <button class="btn-primary" id="change-password-btn">
+            Change Password
+          </button>
+          <button class="btn-danger" id="logout-btn">Logout</button>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
