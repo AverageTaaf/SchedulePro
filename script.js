@@ -1422,3 +1422,65 @@ function setupEventListeners() {
 
 // Initialize the app
 init();
+// Show notification for successful load
+showNotification("SchedulePro loaded successfully!", "success");
+// Notification for unsaved changes if user tries to leave
+window.addEventListener("beforeunload", (e) => {
+  if (currentEditingTaskId) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
+// Update task
+function updateTask() {
+  if (!currentEditingTaskId) return;
+  const taskIndex = tasks.findIndex((t) => t.id === currentEditingTaskId);
+  if (taskIndex === -1) return;
+
+  // Validate title
+  if (!modalTitle.textContent.trim()) {
+    showNotification("Task title is required!", "error");
+    return;
+  }
+  tasks[taskIndex].title = modalTitle.textContent.trim();
+
+  // Update description
+  tasks[taskIndex].description = modalDescription.value.trim();
+  // Update due date
+  tasks[taskIndex].dueDate = modalDueDate.value;
+  // Update checkpoints
+  const updatedCheckpoints = [];
+  modalCheckpoints.querySelectorAll(".checkpoint").forEach((cp) => {
+    const input = cp.querySelector("input");
+    const label = cp.querySelector("label");
+    updatedCheckpoints.push({
+      text: label.textContent,
+      completed: input.checked,
+    });
+  });
+  tasks[taskIndex].checkpoints = updatedCheckpoints;
+  // Update difficulty
+  tasks[taskIndex].difficulty = modalDifficultySelect.value;
+  // Update importance
+  tasks[taskIndex].importance = currentImportance;
+  // Update progress
+  const completedCount = updatedCheckpoints.filter((cp) => cp.completed).length;
+  const totalCount = updatedCheckpoints.length;
+  tasks[taskIndex].progress =
+    totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+  // Update status based on progress
+  if (tasks[taskIndex].progress === 100) {
+    tasks[taskIndex].status = "done";
+  } else if (tasks[taskIndex].progress > 0) {
+    tasks[taskIndex].status = "in-progress";
+  } else {
+    tasks[taskIndex].status = "todo";
+  }
+  saveTasks();
+  renderTasks();
+  closeTaskModal();
+  updateStats();
+  currentEditingTaskId = null;
+  showNotification("Task updated successfully!", "success");
+}
