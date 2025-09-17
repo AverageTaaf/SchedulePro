@@ -8,13 +8,11 @@ const signupContent = document.getElementById("signup-content");
 const loginEmail = document.getElementById("login-email");
 const loginPassword = document.getElementById("login-password");
 const loginBtn = document.getElementById("login-btn");
-const googleLogin = document.getElementById("google-login");
 const signupUsername = document.getElementById("signup-username");
 const signupEmail = document.getElementById("signup-email");
 const signupPassword = document.getElementById("signup-password");
 const signupConfirm = document.getElementById("signup-confirm");
 const signupBtn = document.getElementById("signup-btn");
-const googleSignup = document.getElementById("google-signup");
 const userModalOverlay = document.getElementById("user-modal-overlay");
 const closeUserModal = document.getElementById("close-user-modal");
 const userDisplayName = document.getElementById("user-display-name");
@@ -911,10 +909,6 @@ function setupAuthEventListeners() {
   signupBtn.addEventListener("click", handleSignup);
   signupPassword.addEventListener("input", validatePassword);
 
-  // Google auth (simulated)
-  googleLogin.addEventListener("click", simulateGoogleAuth);
-  googleSignup.addEventListener("click", simulateGoogleAuth);
-
   // User modal
   closeUserModal.addEventListener("click", closeUserModalWindow);
   changePasswordBtn.addEventListener("click", showChangePasswordModal);
@@ -1081,11 +1075,6 @@ function isPasswordStrong(password) {
     /[0-9]/.test(password) &&
     /[^A-Za-z0-9]/.test(password)
   );
-}
-
-// Simulate Google auth (in a real app, this would use OAuth)
-function simulateGoogleAuth() {
-  showNotification("Google authentication would be implemented here", "info");
 }
 
 // Update auth UI
