@@ -1420,8 +1420,6 @@ function setupEventListeners() {
   window.addEventListener("load", checkOverdueTasks);
 }
 
-// Initialize the app
-init();
 // Show notification for successful load
 showNotification("SchedulePro loaded successfully!", "success");
 // Notification for unsaved changes if user tries to leave
@@ -1484,3 +1482,6 @@ function updateTask() {
   currentEditingTaskId = null;
   showNotification("Task updated successfully!", "success");
 }
+
+// Initialize the app
+init();
