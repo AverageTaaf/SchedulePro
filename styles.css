@@ -118,26 +118,31 @@ button:hover {
 .btn-primary {
   background-color: var(--primary);
   color: white;
+  text-align: center;
 }
 
 .btn-success {
   background-color: var(--success);
   color: white;
+  text-align: center;
 }
 
 .btn-danger {
   background-color: var(--danger);
   color: white;
+  text-align: center;
 }
 
 .btn-warning {
   background-color: var(--warning);
   color: var(--dark);
+  text-align: center;
 }
 
 .btn-info {
   background-color: var(--info);
   color: white;
+  text-align: center;
 }
 
 .mode-toggle {
