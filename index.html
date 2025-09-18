@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SchedulePro - Task Scheduler</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="light-mode">
+    <div class="container">
+      <header>
+        <h1 class="title"><i class="fas fa-tasks"></i>SchedulePro</h1>
+        <div class="controls">
+          <select id="sort-select">
+            <option value="date-added-asc">Date Added: Low → High</option>
+            <option value="date-added-desc">Date Added: High → Low</option>
+            <option value="importance-asc">Importance: Low → High</option>
+            <option value="importance-desc">Importance: High → Low</option>
+            <option value="progress-asc">Progress: Low → High</option>
+            <option value="progress-desc">Progress: High → Low</option>
+            <option value="due-date-asc">Due Date: Soonest</option>
+            <option value="due-date-desc">Due Date: Farthest</option>
+          </select>
+
+          <div class="search-container">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search tasks..."
+            />
+            <i class="fas fa-search"></i>
+          </div>
+
+          <button class="btn-info" id="calendar-view-btn">
+            <i class="fas fa-calendar"></i>Calendar View
+          </button>
+
+          <button class="btn-info" id="export-btn">
+            <i class="fas fa-file-export"></i>Export
+          </button>
+
+          <input
+            type="file"
+            id="import-file"
+            accept=".json,.csv"
+            style="display: none"
+          />
+          <button class="btn-info" id="import-btn">
+            <i class="fas fa-file-import"></i>Import
+          </button>
+
+          <button class="btn-info" id="settings-btn">
+            <i class="fas fa-cog"></i>Settings
+          </button>
+
+          <button class="btn-info" id="insights-btn">
+            <i class="fas fa-chart-line"></i>Insights
+          </button>
+
+          <button class="btn-info" id="help-btn">
+            <i class="fas fa-question-circle"></i>Help
+          </button>
+
+          <button class="btn-primary" id="auth-btn">
+            <i class="fas fa-user"></i>Login
+          </button>
+
+          <button class="mode-toggle" id="mode-toggle">🌙</button>
+        </div>
+      </header>
+
+      <div class="stats">
+        <div class="stat-card">
+          <h3>Total Tasks</h3>
+          <div class="stat-value" id="total-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Completed</h3>
+          <div class="stat-value" id="completed-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>In Progress</h3>
+          <div class="stat-value" id="inprogress-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Overdue</h3>
+          <div class="stat-value" id="overdue-tasks">0</div>
+        </div>
+      </div>
+
+      <div class="priority-filter">
+        <button class="priority-filter-btn active" data-priority="all">
+          All Priorities
+        </button>
+        <button class="priority-filter-btn" data-priority="high">
+          High Priority
+        </button>
+        <button class="priority-filter-btn" data-priority="medium">
+          Medium Priority
+        </button>
+        <button class="priority-filter-btn" data-priority="low">
+          Low Priority
+        </button>
+      </div>
+
+      <div class="filter-container">
+        <select id="project-filter">
+          <option value="all">All Projects</option>
+        </select>
+        <select id="tag-filter">
+          <option value="all">All Tags</option>
+        </select>
+      </div>
+
+      <div class="quick-actions">
+        <button class="btn-primary" id="show-all">
+          <i class="fas fa-eye"></i>Show All
+        </button>
+        <button class="btn-info" id="show-active">
+          <i class="fas fa-running"></i>Show Active
+        </button>
+        <button class="btn-success" id="show-completed">
+          <i class="fas fa-check-circle"></i>Show Completed
+        </button>
+        <button class="btn-info" id="show-archive-btn">
+          <i class="fas fa-archive"></i>Show Archive
+        </button>
+        <button class="btn-danger" id="clear-completed">
+          <i class="fas fa-trash"></i>Clear Completed
+        </button>
+      </div>
+
+      <div class="task-form">
+        <div class="form-header">
+          <h2>Add New Task</h2>
+          <button class="btn-info" id="toggle-form">
+            <i class="fas fa-minus"></i>Collapse
+          </button>
+        </div>
+        <div id="form-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-title"
+                ><i class="fas fa-heading"></i> Task Title</label
+              >
+              <input
+                type="text"
+                id="task-title"
+                placeholder="Enter task title"
+              />
+            </div>
+            <div class="form-group">
+              <label for="task-due-date"
+                ><i class="fas fa-calendar-day"></i> Due Date</label
+              >
+              <input type="date" id="task-due-date" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="task-description"
+              ><i class="fas fa-align-left"></i> Description</label
+            >
+            <textarea
+              id="task-description"
+              placeholder="Enter task description"
+            ></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-difficulty"
+                ><i class="fas fa-fire"></i> Difficulty</label
+              >
+              <select id="task-difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label
+                ><i class="fas fa-exclamation-circle"></i> Importance</label
+              >
+              <div class="importance-selector">
+                <div class="importance-option selected" data-importance="1">
+                  Low
+                </div>
+                <div class="importance-option" data-importance="2">Medium</div>
+                <div class="importance-option" data-importance="3">High</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="task-recurrence"
+              ><i class="fas fa-repeat"></i> Recurrence</label
+            >
+            <select id="task-recurrence">
+              <option value="none">No recurrence</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="task-checkpoints"
+              ><i class="fas fa-check-square"></i> Checkpoints (one per
+              line)</label
+            >
+            <textarea
+              id="task-checkpoints"
+              placeholder="Enter checkpoints, one per line"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="task-project"
+              ><i class="fas fa-folder"></i> Project</label
+            >
+            <select id="task-project">
+              <option value="">No Project</option>
+            </select>
+            <button
+              type="button"
+              class="btn-info"
+              id="add-project-btn"
+              style="margin-top: 10px"
+            >
+              <i class="fas fa-plus"></i>Add New Project
+            </button>
+          </div>
+          <div class="form-group">
+            <label for="task-tags"
+              ><i class="fas fa-tags"></i> Tags (comma separated)</label
+            >
+            <input
+              type="text"
+              id="task-tags"
+              placeholder="Enter tags, comma separated"
+            />
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="add-task">
+              <i class="fas fa-plus"></i>Add Task
+            </button>
+            <button class="btn-success" id="save-task" disabled>
+              <i class="fas fa-save"></i>Save Task
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="task-grid">
+        <div class="category" data-status="todo">
+          <h2><i class="fas fa-clipboard-list"></i> To-Do</h2>
+          <div class="task-list" id="todo-list">
+            <div class="empty-state">
+              <i class="fas fa-clipboard-list"></i>
+              <p>No tasks to do. Add a new task!</p>
+            </div>
+          </div>
+        </div>
+        <div class="category" data-status="in-progress">
+          <h2><i class="fas fa-spinner"></i> In Progress</h2>
+          <div class="task-list" id="in-progress-list">
+            <div class="empty-state">
+              <i class="fas fa-spinner"></i>
+              <p>No tasks in progress</p>
+            </div>
+          </div>
+        </div>
+        <div class="category" data-status="done">
+          <h2><i class="fas fa-check-circle"></i> Done</h2>
+          <div class="task-list" id="done-list">
+            <div class="empty-state">
+              <i class="fas fa-check-circle"></i>
+              <p>No tasks completed yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="category" data-status="archive" style="display: none">
+        <h2><i class="fas fa-archive"></i> Archive</h2>
+        <div class="task-list" id="archive-list">
+          <div class="empty-state">
+            <i class="fas fa-archive"></i>
+            <p>No archived tasks</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-visualization">
+        <h3>Progress Overview</h3>
+        <div class="progress-bars">
+          <div class="progress-category">
+            <h4>To-Do</h4>
+            <div class="progress-container">
+              <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <span>0%</span>
+          </div>
+          <div class="progress-category">
+            <h4>In Progress</h4>
+            <div class="progress-container">
+              <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <span>0%</span>
+          </div>
+          <div class="progress-category">
+            <h4>Done</h4>
+            <div class="progress-container">
+              <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <span>0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="task-modal-overlay">
+      <div class="task-modal">
+        <button class="close-modal" id="close-modal">×</button>
+        <h2 id="modal-title"></h2>
+        <div class="task-meta">
+          <span id="modal-due-date"></span>
+          <span class="difficulty" id="modal-difficulty"></span>
+          <span class="importance-label" id="modal-importance"></span>
+        </div>
+        <p id="modal-description"></p>
+
+        <div class="progress-container">
+          <div class="progress-bar" id="modal-progress-bar"></div>
+        </div>
+        <div class="progress-text">
+          <span>Progress</span>
+          <span id="modal-progress-text">0%</span>
+        </div>
+
+        <div class="checkpoints" id="modal-checkpoints"></div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modal-difficulty-select">Difficulty</label>
+            <select id="modal-difficulty-select">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Importance</label>
+            <div class="importance-selector" id="modal-importance-selector">
+              <div class="importance-option" data-importance="1">Low</div>
+              <div class="importance-option" data-importance="2">Medium</div>
+              <div class="importance-option" data-importance="3">High</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-danger" id="delete-task">
+            <i class="fas fa-trash"></i>Delete Task
+          </button>
+          <button class="btn-success" id="save-changes">
+            <i class="fas fa-save"></i>Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="help-modal-overlay">
+      <div class="help-modal">
+        <button class="close-modal" id="close-help-modal">×</button>
+        <h2><i class="fas fa-question-circle"></i> Help Guide</h2>
+        <div class="help-content">
+          <p>
+            Hey there! Welcome to the "HELP" page. Here, you can see how each
+            and every function of this website works.
+          </p>
+
+          <ol>
+            <li>
+              From the dropdown menu on the top right side, you can sort how
+              your tasks are displayed. The buttons are pretty-much self
+              explanatory.
+            </li>
+            <li>
+              On the top right corner, there is an icon showing moon/sun.
+              Clicking them will switch between light and dark mode. (This saves
+              to database so you don't have to worry about changing it every
+              time you visit the site)
+            </li>
+            <li>
+              Below it are stats. These stats show total tasks/pending
+              tasks/completed tasks/overdue.
+            </li>
+            <li>
+              Under that, there are quick action buttons. You can either show
+              all/active/completed tasks or even delete every completed task at
+              once by clicking the "Clear Completed" button. (clear completed
+              will never delete pending tasks, don't worry)
+            </li>
+            <li>
+              Beneath it is an important category, the "Add New Task". This is
+              mainly the heart of the website. Beside the text is a button
+              either saying "Collapse" or "Expand". When it is pressed, the
+              category will open or close. (It has an animation, so please don't
+              spam the button or it might glitch). It has: Task Title, Due Date,
+              Description, Difficulty, Importance, Checkpoints. For the
+              checkpoints part, you MUST add at least one or else the system
+              which automatically moves tasks from "To-do" to either "In
+              Progress" or "Completed" won't work and you'd have to drag and
+              drop it manually. In order to add new checkpoints, you have to
+              create a new line. In pc/laptop, you can hit enter and it'll
+              create new lines. Each line is a new checkpoint.
+            </li>
+            <li>
+              Finally, the main purpose of the website, the tasks. This is where
+              every single one of your tasks are displayed in the corresponding
+              tabs. Please note that, tasks can be dragged and dropped from one
+              tab to another. If you click on a task, it will expand and show
+              details. If you click the edit button on the task, it will display
+              your task in the "Add New Task" category. From there, you can edit
+              anything you need and then hit save.
+            </li>
+          </ol>
+
+          <p>
+            Do remember, every single necessary function saves to the database.
+            So, you don't have to worry about your tasks being magically
+            disappeared.
+          </p>
+
+          <p>This was all, thank you so much for visiting the site.</p>
+
+          <div class="signature">
+            Warm regards,<br />
+            Taafeef Bin Montaquim.<br />
+            Happy Tasking!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+      <i class="fas fa-bell" id="notification-icon"></i>
+      <span id="notification-message"></span>
+      <button id="notification-action">Okay</button>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal-overlay">
+      <div class="task-modal">
+        <button class="close-modal" id="close-auth-modal">×</button>
+        <h2 id="auth-modal-title">Login to SchedulePro</h2>
+
+        <div class="auth-forms">
+          <!-- Login Form -->
+          <form id="login-form" class="auth-form active">
+            <div class="form-group">
+              <label for="login-email"
+                ><i class="fas fa-envelope"></i> Email</label
+              >
+              <input
+                type="email"
+                id="login-email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="login-password"
+                ><i class="fas fa-lock"></i> Password</label
+              >
+              <input
+                type="password"
+                id="login-password"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-sign-in-alt"></i>Login
+              </button>
+            </div>
+            <p class="auth-switch">
+              Don't have an account?
+              <a href="#" id="switch-to-signup">Sign up</a>
+            </p>
+            <p class="auth-switch">
+              <a href="#" id="forgot-password">Forgot Password?</a>
+            </p>
+          </form>
+
+          <!-- Signup Form -->
+          <form id="signup-form" class="auth-form">
+            <div class="form-group">
+              <label for="signup-username"
+                ><i class="fas fa-user"></i> Username</label
+              >
+              <input
+                type="text"
+                id="signup-username"
+                placeholder="Choose a username"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="signup-email"
+                ><i class="fas fa-envelope"></i> Email</label
+              >
+              <input
+                type="email"
+                id="signup-email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="signup-password"
+                ><i class="fas fa-lock"></i> Password</label
+              >
+              <input
+                type="password"
+                id="signup-password"
+                placeholder="Create a password"
+                required
+              />
+              <div class="password-requirements">
+                <ul>
+                  <li id="req-length">At least 8 characters</li>
+                  <li id="req-upper">Contains uppercase letter</li>
+                  <li id="req-lower">Contains lowercase letter</li>
+                  <li id="req-number">Contains number</li>
+                  <li id="req-special">Contains special character</li>
+                  <li id="req-match">Passwords match</li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="signup-confirm-password"
+                ><i class="fas fa-lock"></i> Confirm Password</label
+              >
+              <input
+                type="password"
+                id="signup-confirm-password"
+                placeholder="Confirm your password"
+                required
+              />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-success">
+                <i class="fas fa-user-plus"></i>Sign Up
+              </button>
+            </div>
+            <p class="auth-switch">
+              Already have an account?
+              <a href="#" id="switch-to-login">Login</a>
+            </p>
+          </form>
+
+          <!-- Forgot Password Form -->
+          <form id="forgot-password-form" class="auth-form">
+            <div class="form-group">
+              <label for="reset-email"
+                ><i class="fas fa-envelope"></i> Email</label
+              >
+              <input
+                type="email"
+                id="reset-email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane"></i>Send Reset Link
+              </button>
+            </div>
+            <p class="auth-switch">
+              Remember your password?
+              <a href="#" id="switch-to-login-from-forgot">Login</a>
+            </p>
+          </form>
+        </div>
+
+        <div class="auth-status" id="auth-status"></div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal-overlay">
+      <div class="task-modal">
+        <button class="close-modal" id="close-settings-modal">×</button>
+        <h2><i class="fas fa-cog"></i> Settings</h2>
+
+        <div class="settings-section">
+          <h3>Default View Settings</h3>
+          <div class="form-group">
+            <label for="default-sort">Default Sort Order</label>
+            <select id="default-sort">
+              <option value="date-added-desc">Date Added (Newest First)</option>
+              <option value="date-added-asc">Date Added (Oldest First)</option>
+              <option value="due-date-asc">Due Date (Soonest First)</option>
+              <option value="due-date-desc">Due Date (Latest First)</option>
+              <option value="importance-desc">Importance (High to Low)</option>
+              <option value="importance-asc">Importance (Low to High)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="default-filter">Default Filter</label>
+            <select id="default-filter">
+              <option value="all">Show All Tasks</option>
+              <option value="active">Show Active Tasks Only</option>
+              <option value="completed">Show Completed Tasks Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Notification Settings</h3>
+          <div class="form-group">
+            <label for="reminder-time">Default Reminder Time</label>
+            <select id="reminder-time">
+              <option value="15">15 minutes before</option>
+              <option value="30">30 minutes before</option>
+              <option value="60">1 hour before</option>
+              <option value="1440">1 day before</option>
+              <option value="2880">2 days before</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Profile Settings</h3>
+          <div class="form-group">
+            <label for="profile-picture">Profile Picture</label>
+            <input type="file" id="profile-picture" accept="image/*" />
+          </div>
+          <div class="form-group">
+            <label for="display-name">Display Name</label>
+            <input
+              type="text"
+              id="display-name"
+              placeholder="Enter your name"
+            />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-success" id="save-settings">
+            <i class="fas fa-save"></i>Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar View Modal -->
+    <div class="modal-overlay" id="calendar-modal-overlay">
+      <div class="calendar-modal">
+        <button class="close-modal" id="close-calendar-modal">×</button>
+        <h2><i class="fas fa-calendar"></i> Calendar View</h2>
+        <div class="calendar-header">
+          <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+          <h3 id="calendar-month-year"></h3>
+          <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid">
+          <!-- Calendar will be generated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights Modal -->
+    <div class="modal-overlay" id="insights-modal-overlay">
+      <div class="task-modal">
+        <button class="close-modal" id="close-insights-modal">×</button>
+        <h2><i class="fas fa-chart-line"></i> Productivity Insights</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Tasks Completed This Week</h3>
+            <div class="stat-value" id="weekly-completed">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>Average Completion Rate</h3>
+            <div class="stat-value" id="completion-rate">0%</div>
+          </div>
+          <div class="stat-card">
+            <h3>Current Streak</h3>
+            <div class="stat-value" id="current-streak">0 days</div>
+          </div>
+          <div class="stat-card">
+            <h3>Most Productive Day</h3>
+            <div class="stat-value" id="productive-day">None</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="productivity-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal-overlay" id="project-modal-overlay">
+      <div class="task-modal">
+        <button class="close-modal" id="close-project-modal">×</button>
+        <h2><i class="fas fa-folder-plus"></i> Add New Project</h2>
+
+        <div class="form-group">
+          <label for="project-name">Project Name</label>
+          <input
+            type="text"
+            id="project-name"
+            placeholder="Enter project name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="project-color">Project Color</label>
+          <input type="color" id="project-color" value="#6c5ce7" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-success" id="save-project">
+            <i class="fas fa-save"></i>Save Project
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p class="credits">Taafeef Bin Montaquim || All Rights Reserved</p>
+      <p class="otherWebsite">
+        Check my other websites:
+        <br />
+        <a href="https://typemaster-ai.netlify.app/">typemaster-ai.com</a>
+        <br />
+        <a href="https://weatherify-ai.netlify.app/">weatherify-ai.com</a>
+      </p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
