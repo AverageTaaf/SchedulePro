@@ -303,6 +303,8 @@ function setupEventListeners() {
   if (elements.settingsBtn) {
     elements.settingsBtn.addEventListener("click", () => {
       console.log("Settings button clicked");
+      // Update settings modal with current values before opening
+      elements.defaultTheme.value = currentTheme;
       openModal(elements.settingsModal);
     });
   } else {
@@ -2590,6 +2592,7 @@ function loadSettings() {
   const defaultTheme = localStorage.getItem("defaultTheme");
   if (defaultTheme) {
     elements.defaultTheme.value = defaultTheme;
+    // Note: Theme is applied by the DOMContentLoaded listener in the theme system
   }
 
   const defaultView = localStorage.getItem("defaultView");
@@ -2610,10 +2613,14 @@ function loadSettings() {
 
 // Save settings to local storage
 function saveSettings() {
-  localStorage.setItem("defaultTheme", elements.defaultTheme.value);
+  const selectedTheme = elements.defaultTheme.value;
+  localStorage.setItem("defaultTheme", selectedTheme);
   localStorage.setItem("defaultView", elements.defaultView.value);
   localStorage.setItem("reduceMotion", elements.reduceMotion.checked);
   localStorage.setItem("disableAnimations", elements.disableAnimations.checked);
+
+  // Apply the selected theme immediately
+  applyTheme(selectedTheme);
 
   showNotification("Settings saved successfully!", "success");
   closeModal(elements.settingsModal);
@@ -2706,6 +2713,8 @@ function handleKeyboardShortcuts(e) {
   // Ctrl + ,: Open settings
   if (e.ctrlKey && e.key === ",") {
     e.preventDefault();
+    // Update settings modal with current values before opening
+    elements.defaultTheme.value = currentTheme;
     openModal(elements.settingsModal);
   }
 
@@ -2876,7 +2885,8 @@ document.addEventListener("DOMContentLoaded", init);
 // ========== NEW FEATURES IMPLEMENTATION ==========
 
 // Theme System
-let currentTheme = localStorage.getItem("appTheme") || "dark";
+// Check for defaultTheme from settings first, then fall back to appTheme
+let currentTheme = localStorage.getItem("defaultTheme") || localStorage.getItem("appTheme") || "dark";
 let currentLayout = localStorage.getItem("appLayout") || "kanban";
 let currentDensity = localStorage.getItem("appDensity") || "relaxed";
 let bulkSelectMode = false;
@@ -2911,6 +2921,8 @@ function applyTheme(theme) {
 
   currentTheme = theme;
   localStorage.setItem("appTheme", theme);
+  // Also update defaultTheme to keep settings in sync
+  localStorage.setItem("defaultTheme", theme);
 
   // Update active theme button
   document.querySelectorAll(".theme-btn").forEach((btn) => {
