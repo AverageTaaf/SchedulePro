@@ -173,33 +173,56 @@ const elements = {
 };
 
 // Initialize the application
-function initApp() {
-  console.log("Initializing SchedulePro App...");
+function init() {
+  console.log("🚀 Initializing SchedulePro App...");
 
   // Set up event listeners
+  console.log("  ⚙️ Setting up event listeners...");
   setupEventListeners();
 
   // Set default due date to today
   const today = new Date().toISOString().split("T")[0];
   elements.taskDueDate.value = today;
+  console.log("  📅 Default due date set to:", today);
+
+  // Load tasks from local storage
+  console.log("  💾 Loading tasks from local storage...");
+  loadTasksFromLocalStorage();
+
+  // Render tasks
+  console.log("  🎨 Rendering tasks...");
+  renderTasks();
+
+  // Update statistics
+  console.log("  📊 Updating statistics...");
+  updateStats();
 
   // Set up drag and drop
+  console.log("  🖱️ Setting up drag and drop...");
   setupDragAndDrop();
 
   // Check authentication state
+  console.log("  🔐 Checking authentication state...");
   checkAuthState();
 
   // Load settings
+  console.log("  ⚙️ Loading settings...");
   loadSettings();
 
-  // Initialize charts
-  initCharts();
-
   // Generate calendar
+  console.log("  📆 Generating calendar...");
   generateCalendar(currentMonth, currentYear);
 
-  console.log("App initialized successfully");
+  console.log("✅ App initialized successfully");
 }
+
+// Initialize charts when window is fully loaded
+window.addEventListener("load", () => {
+  console.log("Window loaded, initializing charts...");
+  setTimeout(() => {
+    initCharts();
+  }, 300);
+});
 
 // Set up all event listeners
 function setupEventListeners() {
@@ -215,21 +238,35 @@ function setupEventListeners() {
     btn.addEventListener("click", closeAllModals);
   });
 
-  elements.closeHelpModal.addEventListener("click", () =>
-    closeModal(elements.helpModal)
-  );
-  elements.closeAuthModal.addEventListener("click", () =>
-    closeModal(elements.authModal)
-  );
-  elements.closeSettingsModal.addEventListener("click", () =>
-    closeModal(elements.settingsModal)
-  );
-  elements.closeArchiveModal.addEventListener("click", () =>
-    closeModal(elements.archiveModal)
-  );
-  elements.closeProfileModal.addEventListener("click", () =>
-    closeModal(elements.profileModal)
-  );
+  if (elements.closeHelpModal) {
+    elements.closeHelpModal.addEventListener("click", () =>
+      closeModal(elements.helpModal)
+    );
+  }
+
+  if (elements.closeAuthModal) {
+    elements.closeAuthModal.addEventListener("click", () =>
+      closeModal(elements.authModal)
+    );
+  }
+
+  if (elements.closeSettingsModal) {
+    elements.closeSettingsModal.addEventListener("click", () =>
+      closeModal(elements.settingsModal)
+    );
+  }
+
+  if (elements.closeArchiveModal) {
+    elements.closeArchiveModal.addEventListener("click", () =>
+      closeModal(elements.archiveModal)
+    );
+  }
+
+  if (elements.closeProfileModal) {
+    elements.closeProfileModal.addEventListener("click", () =>
+      closeModal(elements.profileModal)
+    );
+  }
 
   // Modal actions
   elements.saveChangesBtn.addEventListener("click", updateTask);
@@ -237,17 +274,40 @@ function setupEventListeners() {
   elements.archiveTaskBtn.addEventListener("click", archiveTask);
 
   // UI controls
-  elements.modeToggle.addEventListener("click", toggleDarkMode);
-  elements.viewToggle.addEventListener("click", toggleView);
-  elements.helpBtn.addEventListener("click", () =>
-    openModal(elements.helpModal)
-  );
-  elements.authBtn.addEventListener("click", () =>
-    openModal(elements.authModal)
-  );
-  elements.settingsBtn.addEventListener("click", () =>
-    openModal(elements.settingsModal)
-  );
+  if (elements.modeToggle) {
+    elements.modeToggle.addEventListener("click", toggleDarkMode);
+  }
+
+  if (elements.viewToggle) {
+    elements.viewToggle.addEventListener("click", toggleView);
+  }
+
+  if (elements.helpBtn) {
+    elements.helpBtn.addEventListener("click", () => {
+      console.log("Help button clicked");
+      openModal(elements.helpModal);
+    });
+  } else {
+    console.warn("Help button not found");
+  }
+
+  if (elements.authBtn) {
+    elements.authBtn.addEventListener("click", () => {
+      console.log("Auth button clicked");
+      openModal(elements.authModal);
+    });
+  } else {
+    console.warn("Auth button not found");
+  }
+
+  if (elements.settingsBtn) {
+    elements.settingsBtn.addEventListener("click", () => {
+      console.log("Settings button clicked");
+      openModal(elements.settingsModal);
+    });
+  } else {
+    console.warn("Settings button not found");
+  }
   elements.showArchivedBtn.addEventListener("click", showArchivedTasks);
   elements.exportBtn.addEventListener("click", exportTasks);
   elements.importBtn.addEventListener("click", () =>
@@ -335,6 +395,22 @@ function setupEventListeners() {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", handleKeyboardShortcuts);
+
+  // Notification dismiss button
+  if (elements.notificationAction) {
+    elements.notificationAction.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("🔔 Dismiss button clicked");
+      if (elements.notification) {
+        elements.notification.classList.remove("show");
+        console.log("  ✓ Notification hidden");
+      }
+    });
+    console.log("✅ Notification dismiss button initialized");
+  } else {
+    console.warn("⚠️ Notification action button not found");
+  }
 
   console.log("Event listeners set up successfully");
 }
@@ -1664,6 +1740,7 @@ function toggleView() {
     elements.calendarView.style.display = "block";
     elements.viewToggle.innerHTML = '<i class="fas fa-columns"></i>Kanban View';
     currentView = "calendar";
+    generateCalendar(currentMonth, currentYear);
   } else {
     elements.kanbanView.style.display = "grid";
     elements.calendarView.style.display = "none";
@@ -1702,68 +1779,229 @@ function generateCalendar(month, year) {
   // Get first day of month and number of days
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
 
   // Create day headers
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   dayNames.forEach((day) => {
     const dayHeader = document.createElement("div");
-    dayHeader.className = "calendar-day-header";
+    dayHeader.className = "calendar-weekday-header";
     dayHeader.textContent = day;
     elements.calendarGrid.appendChild(dayHeader);
   });
 
-  // Add empty cells for days before the first day of the month
-  for (let i = 0; i < firstDay; i++) {
+  // Add cells for days from previous month
+  for (let i = firstDay - 1; i >= 0; i--) {
     const emptyDay = document.createElement("div");
-    emptyDay.className = "calendar-day empty";
+    emptyDay.className = "calendar-day other-month";
+    const dayNum = document.createElement("div");
+    dayNum.className = "calendar-day-number";
+    dayNum.textContent = prevMonthDays - i;
+    emptyDay.appendChild(dayNum);
     elements.calendarGrid.appendChild(emptyDay);
   }
 
   // Add cells for each day of the month
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   for (let day = 1; day <= daysInMonth; day++) {
     const dayElement = document.createElement("div");
     dayElement.className = "calendar-day";
 
-    // Check if this day is today
-    if (
-      day === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear()
-    ) {
-      dayElement.classList.add("today");
-    }
-
-    // Add day number
-    const dayHeader = document.createElement("div");
-    dayHeader.className = "calendar-day-header";
-    dayHeader.textContent = day;
-    dayElement.appendChild(dayHeader);
-
-    // Add tasks for this day
-    const tasksContainer = document.createElement("div");
-    tasksContainer.className = "calendar-tasks";
-
     const currentDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       day
     ).padStart(2, "0")}`;
+    const dayDate = new Date(year, month, day);
+    dayDate.setHours(0, 0, 0, 0);
+
+    // Check if this day is today
+    if (dayDate.getTime() === today.getTime()) {
+      dayElement.classList.add("today");
+    }
+
+    // Check if weekend
+    const dayOfWeek = dayDate.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      dayElement.classList.add("weekend");
+    }
+
+    // Add day number
+    const dayNumber = document.createElement("div");
+    dayNumber.className = "calendar-day-number";
+    dayNumber.textContent = day;
+    dayElement.appendChild(dayNumber);
+
+    // Get tasks for this day
     const dayTasks = tasks.filter(
-      (task) => task.dueDate === currentDate && !task.archived
+      (task) => task.dueDate === currentDate && !task.archived && !task.deleted
     );
 
+    // Add tasks container
+    const tasksContainer = document.createElement("div");
+    tasksContainer.className = "calendar-tasks";
+
     if (dayTasks.length > 0) {
-      dayTasks.forEach((task) => {
+      // Show up to 3 tasks, then show "+X more"
+      const visibleTasks = dayTasks.slice(0, 3);
+
+      visibleTasks.forEach((task) => {
         const taskElement = document.createElement("div");
         taskElement.className = "calendar-task";
-        taskElement.textContent = task.title;
-        taskElement.addEventListener("click", () => editTask(task.id));
+
+        // Add status class
+        taskElement.classList.add(`status-${task.status}`);
+
+        // Add importance indicator
+        const importanceIndicator = document.createElement("span");
+        importanceIndicator.className = "task-importance-dot";
+        importanceIndicator.dataset.importance = task.importance;
+
+        // Task title
+        const taskTitle = document.createElement("span");
+        taskTitle.className = "calendar-task-title";
+        taskTitle.textContent = task.title;
+
+        // Truncate long titles
+        if (task.title.length > 20) {
+          taskTitle.textContent = task.title.substring(0, 20) + "...";
+          taskTitle.title = task.title; // Show full title on hover
+        }
+
+        taskElement.appendChild(importanceIndicator);
+        taskElement.appendChild(taskTitle);
+
+        // Add click handler
+        taskElement.addEventListener("click", (e) => {
+          e.stopPropagation();
+          editTask(task.id);
+        });
+
         tasksContainer.appendChild(taskElement);
       });
+
+      // Show "more" indicator if there are more than 3 tasks
+      if (dayTasks.length > 3) {
+        const moreIndicator = document.createElement("div");
+        moreIndicator.className = "calendar-more-tasks";
+        moreIndicator.textContent = `+${dayTasks.length - 3} more`;
+        moreIndicator.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showDayTasks(currentDate, dayTasks);
+        });
+        tasksContainer.appendChild(moreIndicator);
+      }
     }
 
     dayElement.appendChild(tasksContainer);
+
+    // Add click handler to day for adding new task
+    dayElement.addEventListener("click", () => {
+      elements.taskDueDate.value = currentDate;
+      elements.taskTitle.focus();
+      showNotification(`Adding task for ${monthNames[month]} ${day}`, "info");
+    });
+
     elements.calendarGrid.appendChild(dayElement);
   }
+
+  // Add cells for days from next month to complete the grid
+  const totalCells = elements.calendarGrid.children.length - 7; // Subtract day headers
+  const remainingCells = 42 - totalCells - 7; // 6 rows * 7 days - headers
+
+  for (let day = 1; day <= remainingCells; day++) {
+    const nextMonthDay = document.createElement("div");
+    nextMonthDay.className = "calendar-day other-month";
+    const dayNum = document.createElement("div");
+    dayNum.className = "calendar-day-number";
+    dayNum.textContent = day;
+    nextMonthDay.appendChild(dayNum);
+    elements.calendarGrid.appendChild(nextMonthDay);
+  }
+}
+
+// Show all tasks for a specific day
+function showDayTasks(date, dayTasks) {
+  const dateObj = new Date(date);
+  const formattedDate = dateObj.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay";
+  modal.style.display = "flex";
+  modal.innerHTML = `
+    <div class="task-modal">
+      <button class="close-modal">×</button>
+      <h2><i class="fas fa-calendar-day"></i> ${formattedDate}</h2>
+      <div class="day-tasks-list">
+        ${dayTasks
+          .map(
+            (task) => `
+          <div class="day-task-item" data-id="${task.id}">
+            <div class="task-header">
+              <span class="task-importance-badge" data-importance="${
+                task.importance
+              }">${task.importance}</span>
+              <h3>${task.title}</h3>
+              <span class="task-status-badge status-${task.status}">${
+              task.status
+            }</span>
+            </div>
+            <p class="task-description">${
+              task.description || "No description"
+            }</p>
+            <div class="task-meta">
+              <span class="task-difficulty ${task.difficulty}">${
+              task.difficulty
+            }</span>
+              ${
+                task.tags
+                  ? task.tags
+                      .map((tag) => {
+                        const tagConfig = customTags.find(
+                          (t) => t.name === tag
+                        );
+                        return `<span class="task-tag" style="background-color: ${
+                          tagConfig ? tagConfig.color : "#6c5ce7"
+                        }">${tag}</span>`;
+                      })
+                      .join("")
+                  : ""
+              }
+            </div>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Add click handlers
+  modal.querySelector(".close-modal").addEventListener("click", () => {
+    document.body.removeChild(modal);
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+
+  // Add click handlers to task items
+  modal.querySelectorAll(".day-task-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const taskId = item.dataset.id;
+      document.body.removeChild(modal);
+      editTask(taskId);
+    });
+  });
 }
 
 // Change calendar month
@@ -1810,89 +2048,192 @@ function updateStats() {
   elements.inprogressTasks.textContent = inProgress;
   elements.overdueTasks.textContent = overdue;
   elements.overallProgress.textContent = `${overallProgress}%`;
+
+  // Update charts with new data (only if charts are initialized)
+  if (window.statusChart || window.completionChart || window.weeklyChart) {
+    updateCharts();
+  }
 }
 
 // Initialize charts
 function initCharts() {
-  console.log("Initializing charts...");
+  console.log("📈 Initializing charts...");
 
-  // Completion trend chart
-  const completionCtx = document
-    .getElementById("completion-chart")
-    .getContext("2d");
-  window.completionChart = new Chart(completionCtx, {
-    type: "line",
-    data: {
-      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      datasets: [
-        {
-          label: "Tasks Completed",
-          data: [0, 0, 0, 0, 0, 0, 0],
-          borderColor: "#6c5ce7",
-          tension: 0.3,
-          fill: true,
-          backgroundColor: "rgba(108, 92, 231, 0.1)",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: "Weekly Completion Trend",
-        },
-      },
-    },
-  });
+  // Check if Chart.js is loaded
+  if (typeof Chart === "undefined") {
+    console.error("❌ Chart.js is not loaded!");
+    return;
+  }
 
-  // Status chart
-  const statusCtx = document.getElementById("status-chart").getContext("2d");
-  window.statusChart = new Chart(statusCtx, {
-    type: "doughnut",
-    data: {
-      labels: ["To Do", "In Progress", "Completed"],
-      datasets: [
-        {
-          data: [0, 0, 0],
-          backgroundColor: ["#74b9ff", "#fdcb6e", "#00b894"],
+  try {
+    // Completion trend chart
+    const completionCanvas = document.getElementById("completion-chart");
+    if (completionCanvas) {
+      console.log("  🔵 Initializing completion chart...");
+      const completionCtx = completionCanvas.getContext("2d");
+      window.completionChart = new Chart(completionCtx, {
+        type: "line",
+        data: {
+          labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          datasets: [
+            {
+              label: "Tasks Completed",
+              data: [0, 0, 0, 0, 0, 0, 0],
+              borderColor: "#6c5ce7",
+              backgroundColor: "rgba(108, 92, 231, 0.2)",
+              tension: 0.4,
+              fill: true,
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: "#6c5ce7",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+            },
+          ],
         },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom",
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            title: {
+              display: true,
+              text: "Weekly Completion Trend",
+              font: {
+                size: 16,
+                weight: "bold",
+              },
+              color: "#6c5ce7",
+            },
+            legend: {
+              display: true,
+              position: "top",
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+            },
+          },
         },
-      },
-    },
-  });
+      });
+    }
 
-  // Weekly productivity chart
-  const weeklyCtx = document.getElementById("weekly-chart").getContext("2d");
-  window.weeklyChart = new Chart(weeklyCtx, {
-    type: "bar",
-    data: {
-      labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-      datasets: [
-        {
-          label: "Tasks Completed",
-          data: [0, 0, 0, 0],
-          backgroundColor: "#6c5ce7",
+    // Status chart
+    const statusCanvas = document.getElementById("status-chart");
+    if (statusCanvas) {
+      console.log("  🟣 Initializing status chart...");
+      const statusCtx = statusCanvas.getContext("2d");
+      window.statusChart = new Chart(statusCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["To Do", "In Progress", "Completed"],
+          datasets: [
+            {
+              data: [0, 0, 0],
+              backgroundColor: ["#74b9ff", "#fdcb6e", "#00b894"],
+              borderWidth: 2,
+              borderColor: "#fff",
+            },
+          ],
         },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: "Monthly Productivity",
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                padding: 15,
+                font: {
+                  size: 12,
+                },
+              },
+            },
+            title: {
+              display: true,
+              text: "Tasks by Status",
+              font: {
+                size: 16,
+                weight: "bold",
+              },
+              color: "#6c5ce7",
+            },
+          },
         },
-      },
-    },
-  });
+      });
+    }
+
+    // Weekly productivity chart
+    const weeklyCanvas = document.getElementById("weekly-chart");
+    if (weeklyCanvas) {
+      console.log("  🟢 Initializing weekly chart...");
+      const weeklyCtx = weeklyCanvas.getContext("2d");
+      window.weeklyChart = new Chart(weeklyCtx, {
+        type: "bar",
+        data: {
+          labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+          datasets: [
+            {
+              label: "Tasks Completed",
+              data: [0, 0, 0, 0],
+              backgroundColor: "#6c5ce7",
+              borderColor: "#5649c9",
+              borderWidth: 2,
+              borderRadius: 8,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            title: {
+              display: true,
+              text: "Monthly Productivity",
+              font: {
+                size: 16,
+                weight: "bold",
+              },
+              color: "#6c5ce7",
+            },
+            legend: {
+              display: true,
+              position: "top",
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    console.log("✅ Charts initialized successfully");
+
+    // Show charts section
+    const chartsSection = document.getElementById("charts-section");
+    if (chartsSection) {
+      chartsSection.style.display = "block";
+      console.log("  ✓ Charts section made visible");
+    }
+
+    // Update charts with initial data
+    setTimeout(() => {
+      console.log("⏱️ Updating charts with initial data...");
+      updateCharts();
+    }, 100);
+  } catch (error) {
+    console.error("❌ Error initializing charts:", error);
+  }
 }
 
 function updateCheckpointStatus(taskId, checkpointIndex, completed) {
@@ -1982,36 +2323,128 @@ function updateCheckpointStatus(taskId, checkpointIndex, completed) {
 
 // Update charts with current data
 function updateCharts() {
-  if (!window.completionChart || !window.statusChart || !window.weeklyChart)
-    return;
+  try {
+    console.log("📊 Updating charts with task data...");
 
-  // Update completion trend (mock data for now)
-  const completionData = [2, 5, 3, 7, 4, 6, 3];
-  window.completionChart.data.datasets[0].data = completionData;
-  window.completionChart.update();
+    // Update status chart with real data
+    if (window.statusChart) {
+      const todoCount = tasks.filter(
+        (task) => task.status === "todo" && !task.archived && !task.deleted
+      ).length;
+      const inProgressCount = tasks.filter(
+        (task) =>
+          task.status === "in-progress" && !task.archived && !task.deleted
+      ).length;
+      const doneCount = tasks.filter(
+        (task) => task.status === "done" && !task.archived && !task.deleted
+      ).length;
 
-  // Update status chart with real data
-  const todoCount = tasks.filter(
-    (task) => task.status === "todo" && !task.archived
-  ).length;
-  const inProgressCount = tasks.filter(
-    (task) => task.status === "in-progress" && !task.archived
-  ).length;
-  const doneCount = tasks.filter(
-    (task) => task.status === "done" && !task.archived
-  ).length;
+      console.log(
+        "  ✓ Status chart - To-Do:",
+        todoCount,
+        "In Progress:",
+        inProgressCount,
+        "Done:",
+        doneCount
+      );
 
-  window.statusChart.data.datasets[0].data = [
-    todoCount,
-    inProgressCount,
-    doneCount,
-  ];
-  window.statusChart.update();
+      window.statusChart.data.datasets[0].data = [
+        todoCount,
+        inProgressCount,
+        doneCount,
+      ];
+      window.statusChart.update();
+    } else {
+      console.warn("  ⚠ Status chart not yet initialized");
+    }
 
-  // Update weekly productivity (mock data for now)
-  const weeklyData = [8, 12, 9, 15];
-  window.weeklyChart.data.datasets[0].data = weeklyData;
-  window.weeklyChart.update();
+    // Update completion trend - last 7 days
+    if (window.completionChart) {
+      const completionData = getWeeklyCompletionData();
+      console.log("  ✓ Completion chart - Weekly data:", completionData);
+      window.completionChart.data.datasets[0].data = completionData;
+      window.completionChart.update();
+    } else {
+      console.warn("  ⚠ Completion chart not yet initialized");
+    }
+
+    // Update weekly productivity - last 4 weeks
+    if (window.weeklyChart) {
+      const weeklyData = getMonthlyProductivityData();
+      console.log("  ✓ Weekly chart - Monthly data:", weeklyData);
+      window.weeklyChart.data.datasets[0].data = weeklyData;
+      window.weeklyChart.update();
+    } else {
+      console.warn("  ⚠ Weekly chart not yet initialized");
+    }
+
+    console.log("✅ Charts updated successfully");
+  } catch (error) {
+    console.error("❌ Error updating charts:", error);
+  }
+}
+
+// Get weekly completion data (last 7 days)
+function getWeeklyCompletionData() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekData = [0, 0, 0, 0, 0, 0, 0];
+
+  tasks.forEach((task) => {
+    if (task.status === "done" && !task.archived && !task.deleted) {
+      // Use createdAt if updatedAt is not available
+      const taskDate = task.updatedAt
+        ? task.updatedAt.toDate
+          ? task.updatedAt.toDate()
+          : new Date(task.updatedAt)
+        : task.createdAt
+        ? task.createdAt.toDate
+          ? task.createdAt.toDate()
+          : new Date(task.createdAt)
+        : new Date();
+
+      const daysDiff = Math.floor((today - taskDate) / (1000 * 60 * 60 * 24));
+
+      if (daysDiff >= 0 && daysDiff < 7) {
+        weekData[6 - daysDiff]++;
+      }
+    }
+  });
+
+  return weekData;
+}
+
+// Get monthly productivity data (last 4 weeks)
+function getMonthlyProductivityData() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monthData = [0, 0, 0, 0];
+
+  tasks.forEach((task) => {
+    if (task.status === "done" && !task.archived && !task.deleted) {
+      // Use createdAt if updatedAt is not available
+      const taskDate = task.updatedAt
+        ? task.updatedAt.toDate
+          ? task.updatedAt.toDate()
+          : new Date(task.updatedAt)
+        : task.createdAt
+        ? task.createdAt.toDate
+          ? task.createdAt.toDate()
+          : new Date(task.createdAt)
+        : new Date();
+
+      const daysDiff = Math.floor((today - taskDate) / (1000 * 60 * 60 * 24));
+
+      if (daysDiff >= 0 && daysDiff < 28) {
+        const weekIndex = Math.floor(daysDiff / 7);
+        if (weekIndex < 4) {
+          monthData[3 - weekIndex]++;
+        }
+      }
+    }
+  });
+
+  return monthData;
 }
 
 // Export tasks to JSON file
@@ -2133,7 +2566,7 @@ function loadSettings() {
   if (savedTheme) {
     document.body.classList.remove("dark-mode", "light-mode");
     document.body.classList.add(savedTheme + "-mode");
-    elements.modeToggle.textContent = savedTheme === "dark" ? "🌙" : "☀️";
+    // Note: modeToggle button removed, using theme selector buttons instead
   }
 
   // Load view
@@ -2194,16 +2627,22 @@ function selectImportance(option, options) {
 
 // Open modal
 function openModal(modal) {
+  if (!modal) {
+    console.error("Modal element not found");
+    return;
+  }
   modal.style.display = "flex";
   setTimeout(() => {
     modal.classList.add("visible");
   }, 10);
-  void modal.offsetWidth;
-  modal.classList.add("visible");
 }
 
 // Close modal
 function closeModal(modal) {
+  if (!modal) {
+    console.error("Modal element not found");
+    return;
+  }
   modal.classList.remove("visible");
   setTimeout(() => {
     modal.style.display = "none";
@@ -2432,4 +2871,1084 @@ function logoutUser() {
 }
 
 // Initialize the app when DOM is loaded
-document.addEventListener("DOMContentLoaded", initApp);
+document.addEventListener("DOMContentLoaded", init);
+
+// ========== NEW FEATURES IMPLEMENTATION ==========
+
+// Theme System
+let currentTheme = localStorage.getItem("appTheme") || "dark";
+let currentLayout = localStorage.getItem("appLayout") || "kanban";
+let currentDensity = localStorage.getItem("appDensity") || "relaxed";
+let bulkSelectMode = false;
+let selectedTasks = new Set();
+let advancedFilters = {
+  dateFrom: null,
+  dateTo: null,
+  statuses: [],
+  difficulties: [],
+  importances: [],
+};
+
+// Apply theme on load
+function applyTheme(theme) {
+  const body = document.body;
+  body.classList.remove(
+    "light-mode",
+    "dark-mode",
+    "blue-theme",
+    "green-theme",
+    "pink-theme",
+    "orange-theme"
+  );
+
+  if (theme === "light") {
+    body.classList.add("light-mode");
+  } else if (theme === "dark") {
+    body.classList.add("dark-mode");
+  } else {
+    body.classList.add(theme + "-theme", "dark-mode");
+  }
+
+  currentTheme = theme;
+  localStorage.setItem("appTheme", theme);
+
+  // Update active theme button
+  document.querySelectorAll(".theme-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.theme === theme);
+  });
+}
+
+// Theme button event listeners
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".theme-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyTheme(btn.dataset.theme);
+      showNotification(
+        `${
+          btn.dataset.theme.charAt(0).toUpperCase() + btn.dataset.theme.slice(1)
+        } theme applied!`,
+        "success"
+      );
+    });
+  });
+
+  // Apply saved theme
+  applyTheme(currentTheme);
+});
+
+// Layout System
+function switchLayout(layout) {
+  // Hide all views
+  document.getElementById("kanban-view").style.display = "none";
+  document.getElementById("list-view").style.display = "none";
+  document.getElementById("grid-view").style.display = "none";
+  document.getElementById("timeline-view").style.display = "none";
+  document.getElementById("calendar-view").style.display = "none";
+
+  // Show selected view
+  if (layout === "kanban") {
+    document.getElementById("kanban-view").style.display = "grid";
+    renderTasks();
+  } else if (layout === "list") {
+    document.getElementById("list-view").style.display = "block";
+    renderListView();
+  } else if (layout === "grid") {
+    document.getElementById("grid-view").style.display = "block";
+    renderGridView();
+  } else if (layout === "timeline") {
+    document.getElementById("timeline-view").style.display = "block";
+    renderTimelineView();
+  }
+
+  currentLayout = layout;
+  localStorage.setItem("appLayout", layout);
+
+  // Update active layout button
+  document.querySelectorAll(".layout-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.layout === layout);
+  });
+}
+
+// Layout button event listeners
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".layout-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      switchLayout(btn.dataset.layout);
+    });
+  });
+
+  // Apply saved layout
+  switchLayout(currentLayout);
+});
+
+// Density System
+function applyDensity(density) {
+  document.body.classList.remove("compact-mode", "relaxed-mode");
+  document.body.classList.add(density + "-mode");
+
+  currentDensity = density;
+  localStorage.setItem("appDensity", density);
+
+  // Update active density button
+  document.querySelectorAll(".density-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.density === density);
+  });
+}
+
+// Density button event listeners
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".density-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyDensity(btn.dataset.density);
+      showNotification(
+        `${
+          btn.dataset.density.charAt(0).toUpperCase() +
+          btn.dataset.density.slice(1)
+        } mode applied!`,
+        "success"
+      );
+    });
+  });
+
+  // Apply saved density
+  applyDensity(currentDensity);
+});
+
+// List View Rendering
+function renderListView() {
+  const container = document.getElementById("list-container");
+  container.innerHTML = "";
+
+  const activeTasks = tasks.filter((task) => !task.archived && !task.deleted);
+
+  if (activeTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-list"></i><p>No tasks found</p></div>';
+    return;
+  }
+
+  activeTasks.forEach((task) => {
+    const item = document.createElement("div");
+    item.className = "list-task-item";
+
+    const priorityClass =
+      task.importance === 3
+        ? "task-card-priority-high"
+        : task.importance === 2
+        ? "task-card-priority-medium"
+        : "task-card-priority-low";
+    item.classList.add(priorityClass);
+
+    item.innerHTML = `
+      <input type="checkbox" class="list-task-checkbox" ${
+        task.status === "done" ? "checked" : ""
+      }>
+      <div class="list-task-content">
+        <div class="list-task-title">${task.title}</div>
+        <div class="list-task-meta">
+          <span class="task-difficulty ${task.difficulty}">${
+      task.difficulty
+    }</span>
+          <span class="task-date">${task.dueDate || "No due date"}</span>
+          <span class="task-importance" data-importance="${task.importance}">${
+      task.importance
+    }</span>
+        </div>
+      </div>
+    `;
+
+    item
+      .querySelector(".list-task-checkbox")
+      .addEventListener("change", (e) => {
+        updateTaskStatus(task.id, e.target.checked ? "done" : "todo");
+      });
+
+    item.addEventListener("click", (e) => {
+      if (e.target.type !== "checkbox") {
+        editTask(task.id);
+      }
+    });
+
+    container.appendChild(item);
+  });
+}
+
+// Grid View Rendering
+function renderGridView() {
+  const container = document.getElementById("grid-container");
+  container.innerHTML = "";
+
+  const activeTasks = tasks.filter((task) => !task.archived && !task.deleted);
+
+  if (activeTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-th"></i><p>No tasks found</p></div>';
+    return;
+  }
+
+  activeTasks.forEach((task) => {
+    const card = createTaskElement(task);
+    card.classList.add("grid-task-card");
+    container.appendChild(card);
+  });
+}
+
+// Timeline View Rendering
+function renderTimelineView() {
+  const container = document.getElementById("timeline-container");
+  container.innerHTML = "";
+
+  const activeTasks = tasks.filter(
+    (task) => !task.archived && !task.deleted && task.dueDate
+  );
+
+  if (activeTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-stream"></i><p>No tasks with due dates found</p></div>';
+    return;
+  }
+
+  // Sort by due date
+  activeTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  activeTasks.forEach((task) => {
+    const item = document.createElement("div");
+    item.className = "timeline-item";
+
+    item.innerHTML = `
+      <div class="timeline-date">${new Date(task.dueDate).toLocaleDateString(
+        "en-US",
+        { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+      )}</div>
+      <h3 class="task-title">${task.title}</h3>
+      <p class="task-description">${task.description || "No description"}</p>
+      <div class="task-meta">
+        <span class="task-difficulty ${task.difficulty}">${
+      task.difficulty
+    }</span>
+        <span class="task-importance" data-importance="${task.importance}">${
+      task.importance
+    }</span>
+      </div>
+    `;
+
+    item.addEventListener("click", () => editTask(task.id));
+    container.appendChild(item);
+  });
+}
+
+// Advanced Search/Filter
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("toggle-advanced-search");
+  const content = document.getElementById("advanced-search-content");
+  const applyBtn = document.getElementById("apply-filters");
+  const clearBtn = document.getElementById("clear-filters");
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      const isHidden = content.style.display === "none";
+      content.style.display = isHidden ? "block" : "none";
+      toggleBtn.innerHTML = isHidden
+        ? '<i class="fas fa-filter"></i>Hide Filters'
+        : '<i class="fas fa-filter"></i>Advanced Filters';
+    });
+  }
+
+  if (applyBtn) {
+    applyBtn.addEventListener("click", () => {
+      advancedFilters.dateFrom =
+        document.getElementById("filter-date-from").value;
+      advancedFilters.dateTo = document.getElementById("filter-date-to").value;
+      advancedFilters.statuses = Array.from(
+        document.getElementById("filter-status").selectedOptions
+      ).map((o) => o.value);
+      advancedFilters.difficulties = Array.from(
+        document.getElementById("filter-difficulty").selectedOptions
+      ).map((o) => o.value);
+      advancedFilters.importances = Array.from(
+        document.getElementById("filter-importance").selectedOptions
+      ).map((o) => o.value);
+
+      applyAdvancedFilters();
+      showNotification("Filters applied!", "success");
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      document.getElementById("filter-date-from").value = "";
+      document.getElementById("filter-date-to").value = "";
+      document.getElementById("filter-status").selectedIndex = -1;
+      document.getElementById("filter-difficulty").selectedIndex = -1;
+      document.getElementById("filter-importance").selectedIndex = -1;
+
+      advancedFilters = {
+        dateFrom: null,
+        dateTo: null,
+        statuses: [],
+        difficulties: [],
+        importances: [],
+      };
+      filterAndRenderTasks();
+      showNotification("Filters cleared!", "info");
+    });
+  }
+});
+
+function applyAdvancedFilters() {
+  let filteredTasks = [...tasks].filter(
+    (task) => !task.archived && !task.deleted
+  );
+
+  // Date range filter
+  if (advancedFilters.dateFrom) {
+    filteredTasks = filteredTasks.filter(
+      (task) => task.dueDate >= advancedFilters.dateFrom
+    );
+  }
+  if (advancedFilters.dateTo) {
+    filteredTasks = filteredTasks.filter(
+      (task) => task.dueDate <= advancedFilters.dateTo
+    );
+  }
+
+  // Status filter
+  if (advancedFilters.statuses.length > 0) {
+    filteredTasks = filteredTasks.filter((task) =>
+      advancedFilters.statuses.includes(task.status)
+    );
+  }
+
+  // Difficulty filter
+  if (advancedFilters.difficulties.length > 0) {
+    filteredTasks = filteredTasks.filter((task) =>
+      advancedFilters.difficulties.includes(task.difficulty)
+    );
+  }
+
+  // Importance filter
+  if (advancedFilters.importances.length > 0) {
+    filteredTasks = filteredTasks.filter((task) =>
+      advancedFilters.importances.includes(String(task.importance))
+    );
+  }
+
+  renderTasks(filteredTasks);
+}
+
+// Bulk Selection System
+document.addEventListener("DOMContentLoaded", () => {
+  const bulkToggleBtn = document.getElementById("bulk-select-toggle");
+  const bulkActionsBtn = document.getElementById("bulk-actions-btn");
+
+  if (bulkToggleBtn) {
+    bulkToggleBtn.addEventListener("click", () => {
+      bulkSelectMode = !bulkSelectMode;
+      selectedTasks.clear();
+
+      if (bulkSelectMode) {
+        bulkToggleBtn.innerHTML = '<i class="fas fa-times"></i>Cancel';
+        bulkActionsBtn.style.display = "flex";
+        document.querySelectorAll(".task-card").forEach((card) => {
+          card.classList.add("bulk-select-mode");
+          card.addEventListener("click", handleBulkSelect);
+        });
+      } else {
+        bulkToggleBtn.innerHTML =
+          '<i class="fas fa-check-square"></i>Bulk Select';
+        bulkActionsBtn.style.display = "none";
+        document.querySelectorAll(".task-card").forEach((card) => {
+          card.classList.remove("bulk-select-mode", "selected");
+          card.removeEventListener("click", handleBulkSelect);
+        });
+      }
+    });
+  }
+
+  if (bulkActionsBtn) {
+    bulkActionsBtn.addEventListener("click", () => {
+      if (selectedTasks.size > 0) {
+        openModal(document.getElementById("bulk-actions-modal"));
+        document.getElementById("selected-count").textContent =
+          selectedTasks.size;
+      } else {
+        showNotification("No tasks selected", "warning");
+      }
+    });
+  }
+});
+
+function handleBulkSelect(e) {
+  e.stopPropagation();
+  const taskId = this.dataset.id;
+
+  if (selectedTasks.has(taskId)) {
+    selectedTasks.delete(taskId);
+    this.classList.remove("selected");
+  } else {
+    selectedTasks.add(taskId);
+    this.classList.add("selected");
+  }
+}
+
+// Bulk Actions
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("bulk-complete")?.addEventListener("click", () => {
+    selectedTasks.forEach((taskId) => updateTaskStatus(taskId, "done"));
+    showNotification(
+      `${selectedTasks.size} tasks marked as complete`,
+      "success"
+    );
+    closeModal(document.getElementById("bulk-actions-modal"));
+    selectedTasks.clear();
+  });
+
+  document.getElementById("bulk-archive")?.addEventListener("click", () => {
+    selectedTasks.forEach((taskId) => archiveTaskById(taskId));
+    showNotification(`${selectedTasks.size} tasks archived`, "success");
+    closeModal(document.getElementById("bulk-actions-modal"));
+    selectedTasks.clear();
+  });
+
+  document.getElementById("bulk-delete")?.addEventListener("click", () => {
+    showConfirmation(
+      "Delete Tasks",
+      `Are you sure you want to delete ${selectedTasks.size} tasks?`,
+      () => {
+        selectedTasks.forEach((taskId) => moveToTrash(taskId));
+        showNotification(
+          `${selectedTasks.size} tasks moved to trash`,
+          "success"
+        );
+        closeModal(document.getElementById("bulk-actions-modal"));
+        selectedTasks.clear();
+      }
+    );
+  });
+
+  document.getElementById("close-bulk-modal")?.addEventListener("click", () => {
+    closeModal(document.getElementById("bulk-actions-modal"));
+  });
+});
+
+function archiveTaskById(taskId) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .update({
+        archived: true,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+  } else {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) task.archived = true;
+    saveTasksToLocalStorage();
+    renderTasks();
+  }
+}
+
+// Trash System
+function moveToTrash(taskId) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .update({
+        deleted: true,
+        deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+  } else {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      task.deleted = true;
+      task.deletedAt = new Date().toISOString();
+    }
+    saveTasksToLocalStorage();
+    renderTasks();
+  }
+}
+
+function restoreFromTrash(taskId) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .update({
+        deleted: false,
+        deletedAt: null,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+  } else {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      task.deleted = false;
+      task.deletedAt = null;
+    }
+    saveTasksToLocalStorage();
+    renderTasks();
+  }
+  showNotification("Task restored!", "success");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("show-trash")?.addEventListener("click", showTrash);
+  document
+    .getElementById("close-trash-modal")
+    ?.addEventListener("click", () => {
+      closeModal(document.getElementById("trash-modal-overlay"));
+    });
+  document.getElementById("empty-trash")?.addEventListener("click", emptyTrash);
+});
+
+function showTrash() {
+  const trashedTasks = tasks.filter((task) => task.deleted);
+  const container = document.getElementById("trash-tasks-list");
+  container.innerHTML = "";
+
+  if (trashedTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-trash-alt"></i><p>Trash is empty</p></div>';
+  } else {
+    trashedTasks.forEach((task) => {
+      const taskElement = document.createElement("div");
+      taskElement.className = "task-card";
+      taskElement.innerHTML = `
+        <h3 class="task-title">${task.title}</h3>
+        <p class="task-description">${task.description || "No description"}</p>
+        <div class="task-actions">
+          <button class="btn-success restore-btn" data-id="${task.id}">
+            <i class="fas fa-undo"></i>Restore
+          </button>
+          <button class="btn-danger delete-permanent-btn" data-id="${task.id}">
+            <i class="fas fa-trash"></i>Delete Forever
+          </button>
+        </div>
+      `;
+
+      taskElement
+        .querySelector(".restore-btn")
+        .addEventListener("click", () => {
+          restoreFromTrash(task.id);
+          showTrash();
+        });
+
+      taskElement
+        .querySelector(".delete-permanent-btn")
+        .addEventListener("click", () => {
+          showConfirmation(
+            "Delete Forever",
+            "This action cannot be undone!",
+            () => {
+              permanentlyDeleteTask(task.id);
+              showTrash();
+            }
+          );
+        });
+
+      container.appendChild(taskElement);
+    });
+  }
+
+  openModal(document.getElementById("trash-modal-overlay"));
+}
+
+function emptyTrash() {
+  showConfirmation(
+    "Empty Trash",
+    "Permanently delete all tasks in trash? This cannot be undone!",
+    () => {
+      const trashedTasks = tasks.filter((task) => task.deleted);
+      trashedTasks.forEach((task) => permanentlyDeleteTask(task.id));
+      showNotification("Trash emptied", "success");
+      closeModal(document.getElementById("trash-modal-overlay"));
+    }
+  );
+}
+
+function permanentlyDeleteTask(taskId) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .delete();
+  } else {
+    tasks = tasks.filter((t) => t.id !== taskId);
+    saveTasksToLocalStorage();
+    renderTasks();
+  }
+}
+
+// Onboarding System
+let onboardingStep = 1;
+const totalOnboardingSteps = 5;
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Check if user has seen onboarding
+  const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+  if (!hasSeenOnboarding) {
+    setTimeout(() => {
+      openModal(document.getElementById("onboarding-modal"));
+    }, 1000);
+  }
+
+  document
+    .getElementById("onboarding-next")
+    ?.addEventListener("click", nextOnboardingStep);
+  document
+    .getElementById("onboarding-prev")
+    ?.addEventListener("click", prevOnboardingStep);
+  document
+    .getElementById("onboarding-finish")
+    ?.addEventListener("click", finishOnboarding);
+  document
+    .getElementById("close-onboarding")
+    ?.addEventListener("click", finishOnboarding);
+});
+
+function nextOnboardingStep() {
+  if (onboardingStep < totalOnboardingSteps) {
+    onboardingStep++;
+    updateOnboardingStep();
+  }
+}
+
+function prevOnboardingStep() {
+  if (onboardingStep > 1) {
+    onboardingStep--;
+    updateOnboardingStep();
+  }
+}
+
+function updateOnboardingStep() {
+  document.querySelectorAll(".onboarding-step").forEach((step, index) => {
+    step.classList.toggle("active", index + 1 === onboardingStep);
+  });
+
+  document.querySelectorAll(".dot").forEach((dot, index) => {
+    dot.classList.toggle("active", index + 1 === onboardingStep);
+  });
+
+  document.getElementById("onboarding-prev").style.display =
+    onboardingStep === 1 ? "none" : "flex";
+  document.getElementById("onboarding-next").style.display =
+    onboardingStep === totalOnboardingSteps ? "none" : "flex";
+  document.getElementById("onboarding-finish").style.display =
+    onboardingStep === totalOnboardingSteps ? "flex" : "none";
+}
+
+function finishOnboarding() {
+  localStorage.setItem("hasSeenOnboarding", "true");
+  closeModal(document.getElementById("onboarding-modal"));
+  onboardingStep = 1;
+  updateOnboardingStep();
+}
+
+// Confirmation Dialog
+function showConfirmation(title, message, onConfirm) {
+  const dialog = document.getElementById("confirmation-dialog");
+  document.getElementById("confirmation-title").textContent = title;
+  document.getElementById("confirmation-message").textContent = message;
+
+  const confirmBtn = document.getElementById("confirmation-confirm");
+  const cancelBtn = document.getElementById("confirmation-cancel");
+
+  const handleConfirm = () => {
+    onConfirm();
+    closeModal(dialog);
+    confirmBtn.removeEventListener("click", handleConfirm);
+  };
+
+  const handleCancel = () => {
+    closeModal(dialog);
+    confirmBtn.removeEventListener("click", handleConfirm);
+  };
+
+  confirmBtn.addEventListener("click", handleConfirm);
+  cancelBtn.addEventListener("click", handleCancel);
+
+  openModal(dialog);
+}
+
+// Analytics Collapse
+document.addEventListener("DOMContentLoaded", () => {
+  document
+    .getElementById("collapse-analytics")
+    ?.addEventListener("click", function () {
+      const content = document.getElementById("charts-content");
+      const isCollapsed = content.classList.contains("collapsed");
+
+      content.classList.toggle("collapsed");
+      this.classList.toggle("collapsed");
+      this.querySelector("i").className = isCollapsed
+        ? "fas fa-chevron-up"
+        : "fas fa-chevron-down";
+    });
+});
+
+// Smart Reminders (Basic Implementation)
+function checkSmartReminders() {
+  const now = new Date();
+  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+  tasks.forEach((task) => {
+    if (!task.archived && !task.deleted && task.status !== "done") {
+      const lastUpdated = task.updatedAt
+        ? new Date(task.updatedAt)
+        : new Date(task.createdAt);
+
+      if (lastUpdated < threeDaysAgo) {
+        showNotification(
+          `Reminder: You haven't worked on "${task.title}" in 3 days!`,
+          "warning"
+        );
+      }
+    }
+  });
+}
+
+// Run smart reminders check periodically
+setInterval(checkSmartReminders, 60 * 60 * 1000); // Check every hour
+
+// Sentiment Detection (Basic Implementation)
+function detectUrgency(description) {
+  const urgentKeywords = [
+    "urgent",
+    "asap",
+    "immediately",
+    "critical",
+    "emergency",
+    "important",
+    "priority",
+  ];
+  const lowerDesc = description.toLowerCase();
+
+  for (const keyword of urgentKeywords) {
+    if (lowerDesc.includes(keyword)) {
+      return 3; // High importance
+    }
+  }
+
+  return 1; // Default to low
+}
+
+// Auto-adjust importance based on description
+document
+  .getElementById("task-description")
+  ?.addEventListener("blur", function () {
+    const description = this.value;
+    if (description) {
+      const detectedImportance = detectUrgency(description);
+      if (detectedImportance === 3) {
+        document.querySelectorAll(".importance-option").forEach((opt) => {
+          opt.classList.toggle("selected", opt.dataset.importance === "3");
+        });
+        showNotification("High importance detected from description!", "info");
+      }
+    }
+  });
+
+console.log("All new features initialized successfully!");
+
+// ========== CUSTOM TAGS SYSTEM ==========
+let customTags = JSON.parse(localStorage.getItem("customTags")) || [
+  { name: "Work", color: "#0984e3" },
+  { name: "Personal", color: "#00b894" },
+  { name: "Urgent", color: "#d63031" },
+];
+
+// Save custom tags to localStorage
+function saveCustomTags() {
+  localStorage.setItem("customTags", JSON.stringify(customTags));
+  updateTagsFilter();
+  updateTaskTagsOptions();
+}
+
+// Update tags filter dropdown
+function updateTagsFilter() {
+  const tagsFilter = document.getElementById("tags-filter");
+  if (!tagsFilter) return;
+
+  tagsFilter.innerHTML = '<option value="all">All Tags</option>';
+  customTags.forEach((tag) => {
+    const option = document.createElement("option");
+    option.value = tag.name;
+    option.textContent = tag.name;
+    tagsFilter.appendChild(option);
+  });
+}
+
+// Update task tags options in forms
+function updateTaskTagsOptions() {
+  const taskTagsSelects = [
+    document.getElementById("task-tags"),
+    document.getElementById("modal-task-tags"),
+  ];
+
+  taskTagsSelects.forEach((select) => {
+    if (!select) return;
+    const selectedValues = Array.from(select.selectedOptions).map(
+      (o) => o.value
+    );
+    select.innerHTML = "";
+
+    customTags.forEach((tag) => {
+      const option = document.createElement("option");
+      option.value = tag.name;
+      option.textContent = tag.name;
+      option.style.backgroundColor = tag.color;
+      option.style.color = "white";
+      if (selectedValues.includes(tag.name)) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  });
+}
+
+// Show tags management modal
+function showTagsManager() {
+  const tagsList = document.getElementById("tags-list");
+  tagsList.innerHTML = "";
+
+  if (customTags.length === 0) {
+    tagsList.innerHTML =
+      '<p style="color: var(--muted); text-align: center;">No tags yet. Add one below!</p>';
+  } else {
+    customTags.forEach((tag, index) => {
+      const tagItem = document.createElement("div");
+      tagItem.className = "tag-item";
+      tagItem.style.backgroundColor = tag.color;
+      tagItem.innerHTML = `
+        <span>${tag.name}</span>
+        <button class="delete-tag" data-index="${index}">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+
+      tagItem.querySelector(".delete-tag").addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteTag(index);
+      });
+
+      tagsList.appendChild(tagItem);
+    });
+  }
+
+  openModal(document.getElementById("tags-modal-overlay"));
+}
+
+// Add new tag
+function addTag() {
+  const nameInput = document.getElementById("new-tag-name");
+  const colorInput = document.getElementById("new-tag-color");
+
+  const name = nameInput.value.trim();
+  const color = colorInput.value;
+
+  if (!name) {
+    showNotification("Tag name is required", "error");
+    return;
+  }
+
+  // Check if tag already exists
+  if (customTags.some((tag) => tag.name.toLowerCase() === name.toLowerCase())) {
+    showNotification("Tag already exists", "error");
+    return;
+  }
+
+  customTags.push({ name, color });
+  saveCustomTags();
+
+  nameInput.value = "";
+  colorInput.value = "#6c5ce7";
+
+  showTagsManager();
+  showNotification(`Tag "${name}" added!`, "success");
+}
+
+// Delete tag
+function deleteTag(index) {
+  const tag = customTags[index];
+  showConfirmation("Delete Tag", `Delete "${tag.name}" tag?`, () => {
+    customTags.splice(index, 1);
+    saveCustomTags();
+    showTagsManager();
+    showNotification(`Tag "${tag.name}" deleted`, "success");
+  });
+}
+
+// Initialize tags system
+document.addEventListener("DOMContentLoaded", () => {
+  updateTagsFilter();
+  updateTaskTagsOptions();
+
+  document
+    .getElementById("manage-tags-btn")
+    ?.addEventListener("click", showTagsManager);
+  document.getElementById("close-tags-modal")?.addEventListener("click", () => {
+    closeModal(document.getElementById("tags-modal-overlay"));
+  });
+  document.getElementById("add-tag-btn")?.addEventListener("click", addTag);
+
+  // Allow Enter key to add tag
+  document.getElementById("new-tag-name")?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      addTag();
+    }
+  });
+});
+
+// Enhanced task card rendering with custom tag colors
+const originalCreateTaskElement = createTaskElement;
+createTaskElement = function (task) {
+  const taskElement = originalCreateTaskElement(task);
+
+  // Add priority border
+  if (task.importance === 3) {
+    taskElement.classList.add("task-card-priority-high");
+  } else if (task.importance === 2) {
+    taskElement.classList.add("task-card-priority-medium");
+  } else {
+    taskElement.classList.add("task-card-priority-low");
+  }
+
+  // Update tag colors
+  const tagsContainer = taskElement.querySelector(".task-tags");
+  if (tagsContainer && task.tags) {
+    tagsContainer.innerHTML = "";
+    task.tags.forEach((tagName) => {
+      const tagConfig = customTags.find((t) => t.name === tagName);
+      const tagElement = document.createElement("span");
+      tagElement.className = "task-tag";
+      tagElement.textContent = tagName;
+      if (tagConfig) {
+        tagElement.style.backgroundColor = tagConfig.color;
+      }
+      tagsContainer.appendChild(tagElement);
+    });
+  }
+
+  // Add task icons
+  const metaDiv = taskElement.querySelector(".task-meta");
+  if (metaDiv) {
+    const iconsDiv = document.createElement("div");
+    iconsDiv.className = "task-icons";
+
+    // Difficulty icon
+    const difficultyIcon = document.createElement("div");
+    difficultyIcon.className = "task-icon icon-difficulty";
+    difficultyIcon.title = `Difficulty: ${task.difficulty}`;
+    difficultyIcon.innerHTML =
+      task.difficulty === "hard"
+        ? '<i class="fas fa-fire"></i>'
+        : task.difficulty === "medium"
+        ? '<i class="fas fa-bolt"></i>'
+        : '<i class="fas fa-leaf"></i>';
+    iconsDiv.appendChild(difficultyIcon);
+
+    // Importance icon
+    const importanceIcon = document.createElement("div");
+    importanceIcon.className = "task-icon icon-importance";
+    importanceIcon.title = `Importance: ${task.importance}`;
+    importanceIcon.innerHTML = '<i class="fas fa-exclamation"></i>';
+    iconsDiv.appendChild(importanceIcon);
+
+    // Overdue icon
+    if (
+      task.dueDate &&
+      new Date(task.dueDate) < new Date() &&
+      task.status !== "done"
+    ) {
+      const overdueIcon = document.createElement("div");
+      overdueIcon.className = "task-icon icon-overdue";
+      overdueIcon.title = "Overdue!";
+      overdueIcon.innerHTML = '<i class="fas fa-clock"></i>';
+      iconsDiv.appendChild(overdueIcon);
+    }
+
+    metaDiv.appendChild(iconsDiv);
+  }
+
+  return taskElement;
+};
+
+// Error validation for task form
+document.addEventListener("DOMContentLoaded", () => {
+  const taskForm = document.querySelector(".task-form");
+  const startTimeInput = document.getElementById("task-start-time");
+  const endTimeInput = document.getElementById("task-end-time");
+  const dueDateInput = document.getElementById("task-due-date");
+
+  // Validate time range
+  function validateTimeRange() {
+    if (startTimeInput.value && endTimeInput.value) {
+      const start = new Date(`2000-01-01T${startTimeInput.value}`);
+      const end = new Date(`2000-01-01T${endTimeInput.value}`);
+
+      if (end <= start) {
+        showNotification("End time must be after start time", "error");
+        endTimeInput.value = "";
+        return false;
+      }
+    }
+    return true;
+  }
+
+  startTimeInput?.addEventListener("change", validateTimeRange);
+  endTimeInput?.addEventListener("change", validateTimeRange);
+
+  // Validate due date (warn if in the past)
+  dueDateInput?.addEventListener("change", function () {
+    const selectedDate = new Date(this.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      showNotification("Due date is in the past", "warning");
+    }
+  });
+});
+
+// Add keyboard shortcut hints
+document.addEventListener("DOMContentLoaded", () => {
+  // Show keyboard shortcuts on Ctrl+?
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "/") {
+      e.preventDefault();
+      showNotification(
+        "Shortcuts: Ctrl+N (New Task), Ctrl+F (Search), Ctrl+, (Settings), Esc (Close)",
+        "info"
+      );
+    }
+  });
+});
+
+console.log("Custom tags system and enhancements initialized!");
+
+// ========== HELP MODAL TABS ==========
+document.addEventListener("DOMContentLoaded", () => {
+  const helpTabs = document.querySelectorAll(".help-tab");
+  const helpTabContents = document.querySelectorAll(".help-tab-content");
+
+  helpTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const targetTab = tab.dataset.tab;
+
+      // Remove active class from all tabs and contents
+      helpTabs.forEach((t) => t.classList.remove("active"));
+      helpTabContents.forEach((content) => content.classList.remove("active"));
+
+      // Add active class to clicked tab and corresponding content
+      tab.classList.add("active");
+      document.getElementById(targetTab)?.classList.add("active");
+    });
+  });
+});
+
+console.log("Help modal tabs initialized!");
