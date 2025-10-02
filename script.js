@@ -533,13 +533,8 @@ function addTask() {
       }))
     : [];
 
-  // Get selected tags
-  const selectedTags = [];
-  for (let option of elements.taskTags.options) {
-    if (option.selected) {
-      selectedTags.push(option.value);
-    }
-  }
+  // Get selected tags from custom tags input
+  const selectedTags = getCurrentTags();
 
   // Calculate progress based on checkpoints
   const progress =
@@ -631,13 +626,8 @@ function saveTask() {
       }))
     : [];
 
-  // Get selected tags
-  const selectedTags = [];
-  for (let option of elements.taskTags.options) {
-    if (option.selected) {
-      selectedTags.push(option.value);
-    }
-  }
+  // Get selected tags from custom tags input (for save task)
+  const selectedTags = getCurrentTags();
 
   // Calculate progress based on checkpoints
   const progress =
@@ -724,13 +714,8 @@ function updateTask() {
     ? parseInt(selectedImportance.dataset.importance)
     : 1;
 
-  // Get selected tags from modal
-  const selectedTags = [];
-  for (let option of elements.modalTaskTags.options) {
-    if (option.selected) {
-      selectedTags.push(option.value);
-    }
-  }
+  // Get selected tags from modal custom input
+  const selectedTags = getCurrentModalTags();
 
   // Get checkpoints status from modal
   const checkpoints = [];
@@ -1192,6 +1177,21 @@ function createTaskElement(task) {
   taskElement.draggable = true;
   taskElement.dataset.id = task.id;
 
+  // Add priority border
+  if (task.importance === 3) {
+    taskElement.classList.add("task-card-priority-high");
+  } else if (task.importance === 2) {
+    taskElement.classList.add("task-card-priority-medium");
+  } else {
+    taskElement.classList.add("task-card-priority-low");
+  }
+
+  // Check if overdue
+  const isOverdue =
+    task.dueDate &&
+    new Date(task.dueDate) < new Date() &&
+    task.status !== "done";
+
   // Format due date
   const dueDate = task.dueDate
     ? new Date(task.dueDate).toLocaleDateString()
@@ -1217,7 +1217,10 @@ function createTaskElement(task) {
     tagsHTML = `
       <div class="task-tags">
         ${task.tags
-          .map((tag) => `<span class="task-tag">${tag}</span>`)
+          .map((tag) => {
+            const tagColor = getTagColor(tag);
+            return `<span class="task-tag" style="background-color: ${tagColor}">${tag}</span>`;
+          })
           .join("")}
       </div>
     `;
@@ -1232,17 +1235,18 @@ function createTaskElement(task) {
     ${checkpointsHTML}
     ${tagsHTML}
     <div class="task-meta">
-      <span class="task-date">Due: ${dueDate}</span>
-      <span class="task-importance" data-importance="${task.importance}">${
+      <span class="task-date"><i class="fas fa-calendar"></i> ${dueDate}</span>
+      <div class="task-importance" data-importance="${task.importance}">${
     task.importance
-  }</span>
+  }</div>
     </div>
+    ${isOverdue ? '<div class="task-overdue-badge"><i class="fas fa-clock"></i> Overdue</div>' : ""}
     <div class="task-actions">
-      <button class="btn-info edit-task" data-id="${task.id}">
-        <i class="fas fa-edit"></i>Edit
+      <button class="btn-info btn-sm edit-task" data-id="${task.id}">
+        <i class="fas fa-edit"></i>
       </button>
-      <button class="btn-success complete-task" data-id="${task.id}">
-        <i class="fas fa-check"></i>Complete
+      <button class="btn-success btn-sm complete-task" data-id="${task.id}">
+        <i class="fas fa-check"></i>
       </button>
     </div>
   `;
@@ -1250,7 +1254,7 @@ function createTaskElement(task) {
   // Add event listeners to buttons
   taskElement
     .querySelector(".edit-task")
-    .addEventListener("click", () => editTask(task.id));
+    .addEventListener("click", () => editTaskById(task.id));
   taskElement
     .querySelector(".complete-task")
     .addEventListener("click", () => completeTask(task.id));
@@ -1260,6 +1264,15 @@ function createTaskElement(task) {
   taskElement.addEventListener("dragend", handleDragEnd);
 
   return taskElement;
+}
+
+// Helper function for editing task by ID
+function editTaskById(taskId) {
+  const task = tasks.find((t) => t.id === taskId);
+  if (task) {
+    currentEditingTaskId = taskId;
+    openTaskModal(taskId);
+  }
 }
 
 // Create an archived task element for the DOM
@@ -1567,9 +1580,7 @@ function resetForm() {
     .classList.add("selected");
 
   // Reset tags selection
-  for (let option of elements.taskTags.options) {
-    option.selected = false;
-  }
+  clearFormTags();
 
   elements.saveTaskBtn.disabled = true;
   currentEditingTaskId = null;
@@ -2886,7 +2897,10 @@ document.addEventListener("DOMContentLoaded", init);
 
 // Theme System
 // Check for defaultTheme from settings first, then fall back to appTheme
-let currentTheme = localStorage.getItem("defaultTheme") || localStorage.getItem("appTheme") || "dark";
+let currentTheme =
+  localStorage.getItem("defaultTheme") ||
+  localStorage.getItem("appTheme") ||
+  "dark";
 let currentLayout = localStorage.getItem("appLayout") || "kanban";
 let currentDensity = localStorage.getItem("appDensity") || "relaxed";
 let bulkSelectMode = false;
@@ -3964,3 +3978,1205 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 console.log("Help modal tabs initialized!");
+
+// ========== ADDITIONAL FIXES AND ENHANCEMENTS ==========
+
+// Global settings object
+let appSettings = {
+  reduceNotifications: false,
+  disableNotifications: false,
+  reduceMotion: false,
+  disableAnimations: false,
+  defaultView: "kanban",
+  defaultTheme: "dark",
+};
+
+// Load app settings on init
+function loadAppSettings() {
+  const savedSettings = localStorage.getItem("appSettings");
+  if (savedSettings) {
+    appSettings = JSON.parse(savedSettings);
+  }
+
+  // Apply settings
+  if (appSettings.reduceMotion) {
+    document.body.style.setProperty("--transition", "none");
+  }
+  if (appSettings.disableAnimations) {
+    document.body.classList.add("no-animations");
+  }
+
+  // Load notification settings
+  const reduceNotifCheckbox = document.getElementById("reduce-notifications");
+  const disableNotifCheckbox = document.getElementById("disable-notifications");
+  if (reduceNotifCheckbox)
+    reduceNotifCheckbox.checked = appSettings.reduceNotifications;
+  if (disableNotifCheckbox)
+    disableNotifCheckbox.checked = appSettings.disableNotifications;
+}
+
+// Enhanced save settings function
+function saveSettingsEnhanced() {
+  const defaultTheme =
+    document.getElementById("default-theme")?.value || "dark";
+  const defaultView =
+    document.getElementById("default-view")?.value || "kanban";
+  const reduceMotion =
+    document.getElementById("reduce-motion")?.checked || false;
+  const disableAnimations =
+    document.getElementById("disable-animations")?.checked || false;
+  const reduceNotifications =
+    document.getElementById("reduce-notifications")?.checked || false;
+  const disableNotifications =
+    document.getElementById("disable-notifications")?.checked || false;
+
+  appSettings = {
+    defaultTheme,
+    defaultView,
+    reduceMotion,
+    disableAnimations,
+    reduceNotifications,
+    disableNotifications,
+  };
+
+  // Save to localStorage
+  localStorage.setItem("appSettings", JSON.stringify(appSettings));
+  localStorage.setItem("defaultTheme", defaultTheme);
+  localStorage.setItem("defaultView", defaultView);
+  localStorage.setItem("reduceMotion", reduceMotion);
+  localStorage.setItem("disableAnimations", disableAnimations);
+
+  // Apply theme immediately
+  applyThemeEnhanced(defaultTheme);
+
+  // Apply view immediately
+  applyDefaultView(defaultView);
+
+  // Apply animation settings
+  if (reduceMotion) {
+    document.body.style.setProperty("--transition", "all 0.1s ease");
+  } else {
+    document.body.style.setProperty(
+      "--transition",
+      "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
+    );
+  }
+
+  if (disableAnimations) {
+    document.body.classList.add("no-animations");
+    const style = document.createElement("style");
+    style.id = "no-animations-style";
+    style.textContent =
+      "* { animation: none !important; transition: none !important; }";
+    document.head.appendChild(style);
+  } else {
+    document.body.classList.remove("no-animations");
+    const existingStyle = document.getElementById("no-animations-style");
+    if (existingStyle) existingStyle.remove();
+  }
+
+  // Save to Firestore if user is logged in
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .set(
+        {
+          settings: appSettings,
+        },
+        { merge: true }
+      )
+      .catch((err) => console.error("Error saving settings:", err));
+  }
+
+  showNotificationEnhanced("Settings saved successfully!", "success");
+  closeModal(document.getElementById("settings-modal-overlay"));
+}
+
+// Apply theme function
+function applyThemeEnhanced(theme) {
+  const body = document.body;
+  body.classList.remove(
+    "light-mode",
+    "dark-mode",
+    "blue-theme",
+    "green-theme",
+    "pink-theme",
+    "orange-theme"
+  );
+
+  if (theme === "light") {
+    body.classList.add("light-mode");
+  } else if (theme === "dark") {
+    body.classList.add("dark-mode");
+  } else {
+    body.classList.add(theme + "-theme");
+  }
+
+  localStorage.setItem("theme", theme);
+}
+
+// Apply default view
+function applyDefaultView(view) {
+  const kanbanView = document.getElementById("kanban-view");
+  const calendarView = document.getElementById("calendar-view");
+  const viewToggle = document.getElementById("view-toggle");
+
+  if (view === "calendar") {
+    if (kanbanView) kanbanView.style.display = "none";
+    if (calendarView) calendarView.style.display = "block";
+    if (viewToggle)
+      viewToggle.innerHTML = '<i class="fas fa-columns"></i>Kanban View';
+    currentView = "calendar";
+  } else {
+    if (kanbanView) kanbanView.style.display = "grid";
+    if (calendarView) calendarView.style.display = "none";
+    if (viewToggle)
+      viewToggle.innerHTML = '<i class="fas fa-calendar"></i>Calendar View';
+    currentView = "kanban";
+  }
+
+  localStorage.setItem("view", view);
+}
+
+// Enhanced notification function with settings
+function showNotificationEnhanced(message, type = "info", isImportant = false) {
+  // Check notification settings
+  if (appSettings.disableNotifications) return;
+  if (appSettings.reduceNotifications && !isImportant) return;
+
+  const notification = document.getElementById("notification");
+  const notificationIcon = document.getElementById("notification-icon");
+  const notificationMessage = document.getElementById("notification-message");
+
+  if (!notification || !notificationIcon || !notificationMessage) return;
+
+  notificationMessage.textContent = message;
+
+  // Set icon based on type
+  switch (type) {
+    case "success":
+      notificationIcon.className = "fas fa-check-circle";
+      notification.style.borderLeft = "4px solid var(--success)";
+      break;
+    case "error":
+      notificationIcon.className = "fas fa-exclamation-circle";
+      notification.style.borderLeft = "4px solid var(--danger)";
+      break;
+    case "warning":
+      notificationIcon.className = "fas fa-exclamation-triangle";
+      notification.style.borderLeft = "4px solid var(--warning)";
+      break;
+    default:
+      notificationIcon.className = "fas fa-info-circle";
+      notification.style.borderLeft = "4px solid var(--info)";
+  }
+
+  notification.classList.add("show");
+
+  setTimeout(() => {
+    notification.classList.remove("show");
+  }, 5000);
+}
+
+// Profile picture handling
+function setupProfilePicture() {
+  const profilePicture = document.getElementById("profile-picture");
+  const profilePictureUpload = document.getElementById(
+    "profile-picture-upload"
+  );
+  const changeProfilePictureBtn = document.getElementById(
+    "change-profile-picture-btn"
+  );
+
+  if (changeProfilePictureBtn && profilePictureUpload) {
+    changeProfilePictureBtn.addEventListener("click", () => {
+      profilePictureUpload.click();
+    });
+  }
+
+  if (profilePictureUpload && profilePicture) {
+    profilePictureUpload.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          profilePicture.src = event.target.result;
+
+          // Save to localStorage
+          localStorage.setItem("profilePicture", event.target.result);
+
+          // Save to Firestore if logged in
+          if (currentUser) {
+            db.collection("users")
+              .doc(currentUser.uid)
+              .set(
+                {
+                  profilePicture: event.target.result,
+                },
+                { merge: true }
+              )
+              .then(() => {
+                showNotificationEnhanced(
+                  "Profile picture updated!",
+                  "success",
+                  true
+                );
+              })
+              .catch((err) => {
+                console.error("Error updating profile picture:", err);
+                showNotificationEnhanced(
+                  "Error updating profile picture",
+                  "error",
+                  true
+                );
+              });
+          } else {
+            showNotificationEnhanced(
+              "Profile picture updated!",
+              "success",
+              true
+            );
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Load saved profile picture
+  const savedPicture = localStorage.getItem("profilePicture");
+  if (savedPicture && profilePicture) {
+    profilePicture.src = savedPicture;
+  }
+
+  // Load from Google if signed in with Google
+  if (currentUser && currentUser.photoURL && profilePicture) {
+    profilePicture.src = currentUser.photoURL;
+  }
+}
+
+// Enhanced modal open/close with proper centering
+function openModalEnhanced(modal) {
+  if (!modal) return;
+  modal.classList.add("show");
+  modal.style.display = "flex";
+}
+
+function closeModalEnhanced(modal) {
+  if (!modal) return;
+  modal.classList.remove("show");
+  setTimeout(() => {
+    modal.style.display = "none";
+  }, 300);
+}
+
+// Fix bulk actions
+function setupBulkActions() {
+  const bulkSelectToggle = document.getElementById("bulk-select-toggle");
+  const bulkActionsBtn = document.getElementById("bulk-actions-btn");
+  const bulkActionsModal = document.getElementById("bulk-actions-modal");
+  const closeBulkModal = document.getElementById("close-bulk-modal");
+
+  let bulkSelectMode = false;
+  let selectedTasks = new Set();
+
+  if (bulkSelectToggle) {
+    bulkSelectToggle.addEventListener("click", () => {
+      bulkSelectMode = !bulkSelectMode;
+
+      if (bulkSelectMode) {
+        bulkSelectToggle.innerHTML = '<i class="fas fa-times"></i>Cancel';
+        bulkSelectToggle.classList.add("btn-danger");
+        bulkSelectToggle.classList.remove("btn-info");
+        if (bulkActionsBtn) bulkActionsBtn.style.display = "flex";
+
+        // Add checkboxes to all task cards
+        document.querySelectorAll(".task-card").forEach((card) => {
+          card.classList.add("bulk-select-mode");
+          card.addEventListener("click", toggleTaskSelection);
+        });
+      } else {
+        bulkSelectToggle.innerHTML =
+          '<i class="fas fa-check-square"></i>Bulk Select';
+        bulkSelectToggle.classList.remove("btn-danger");
+        bulkSelectToggle.classList.add("btn-info");
+        if (bulkActionsBtn) bulkActionsBtn.style.display = "none";
+
+        // Remove checkboxes
+        document.querySelectorAll(".task-card").forEach((card) => {
+          card.classList.remove("bulk-select-mode", "selected");
+          card.removeEventListener("click", toggleTaskSelection);
+        });
+
+        selectedTasks.clear();
+      }
+    });
+  }
+
+  function toggleTaskSelection(e) {
+    if (!bulkSelectMode) return;
+    e.stopPropagation();
+
+    const taskCard = e.currentTarget;
+    const taskId = taskCard.dataset.taskId;
+
+    if (selectedTasks.has(taskId)) {
+      selectedTasks.delete(taskId);
+      taskCard.classList.remove("selected");
+    } else {
+      selectedTasks.add(taskId);
+      taskCard.classList.add("selected");
+    }
+
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const selectedCount = document.getElementById("selected-count");
+    if (selectedCount) {
+      selectedCount.textContent = selectedTasks.size;
+    }
+  }
+
+  if (bulkActionsBtn) {
+    bulkActionsBtn.addEventListener("click", () => {
+      updateSelectedCount();
+      openModalEnhanced(bulkActionsModal);
+    });
+  }
+
+  if (closeBulkModal) {
+    closeBulkModal.addEventListener("click", () => {
+      closeModalEnhanced(bulkActionsModal);
+    });
+  }
+
+  // Bulk complete
+  const bulkComplete = document.getElementById("bulk-complete");
+  if (bulkComplete) {
+    bulkComplete.addEventListener("click", () => {
+      selectedTasks.forEach((taskId) => {
+        updateTaskStatus(taskId, "done");
+      });
+      showNotificationEnhanced(
+        `${selectedTasks.size} tasks marked as complete`,
+        "success",
+        true
+      );
+      closeModalEnhanced(bulkActionsModal);
+      selectedTasks.clear();
+    });
+  }
+
+  // Bulk archive
+  const bulkArchive = document.getElementById("bulk-archive");
+  if (bulkArchive) {
+    bulkArchive.addEventListener("click", () => {
+      selectedTasks.forEach((taskId) => {
+        archiveTaskById(taskId);
+      });
+      showNotificationEnhanced(
+        `${selectedTasks.size} tasks archived`,
+        "success",
+        true
+      );
+      closeModalEnhanced(bulkActionsModal);
+      selectedTasks.clear();
+    });
+  }
+
+  // Bulk delete
+  const bulkDelete = document.getElementById("bulk-delete");
+  if (bulkDelete) {
+    bulkDelete.addEventListener("click", () => {
+      if (confirm(`Delete ${selectedTasks.size} tasks?`)) {
+        selectedTasks.forEach((taskId) => {
+          deleteTaskById(taskId);
+        });
+        showNotificationEnhanced(
+          `${selectedTasks.size} tasks deleted`,
+          "success",
+          true
+        );
+        closeModalEnhanced(bulkActionsModal);
+        selectedTasks.clear();
+      }
+    });
+  }
+}
+
+function updateTaskStatus(taskId, status) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .update({
+        status: status,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .catch((err) => console.error("Error updating task:", err));
+  } else {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      task.status = status;
+      saveTasksToLocalStorage();
+      renderTasks();
+      updateStats();
+    }
+  }
+}
+
+function archiveTaskById(taskId) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .update({
+        archived: true,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .catch((err) => console.error("Error archiving task:", err));
+  } else {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      task.archived = true;
+      saveTasksToLocalStorage();
+      renderTasks();
+      updateStats();
+    }
+  }
+}
+
+function deleteTaskById(taskId) {
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .delete()
+      .catch((err) => console.error("Error deleting task:", err));
+  } else {
+    tasks = tasks.filter((t) => t.id !== taskId);
+    saveTasksToLocalStorage();
+    renderTasks();
+    updateStats();
+  }
+}
+
+// Request notification permission and setup reminders
+function setupReminders() {
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        showNotificationEnhanced("Notifications enabled!", "success", true);
+      }
+    });
+  }
+
+  // Check for due reminders every minute
+  setInterval(checkReminders, 60000);
+}
+
+function checkReminders() {
+  if (!tasks || tasks.length === 0) return;
+
+  const now = new Date();
+
+  tasks.forEach((task) => {
+    if (
+      task.reminder &&
+      task.reminder !== "none" &&
+      task.dueDate &&
+      !task.archived &&
+      task.status !== "done"
+    ) {
+      const dueDate = new Date(task.dueDate);
+      const reminderMinutes = parseInt(task.reminder);
+      const reminderTime = new Date(
+        dueDate.getTime() - reminderMinutes * 60000
+      );
+
+      // Check if it's time for reminder (within 1 minute window)
+      if (
+        now >= reminderTime &&
+        now < new Date(reminderTime.getTime() + 60000)
+      ) {
+        sendNotification(task);
+      }
+    }
+  });
+}
+
+function sendNotification(task) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Task Reminder", {
+      body: `${task.title} is due soon!`,
+      icon: "favicon.ico",
+      tag: task.id,
+    });
+  }
+
+  showNotificationEnhanced(`Reminder: ${task.title}`, "warning", true);
+}
+
+// ========== TASK CARD DISPLAY FIXES ==========
+
+// Enhanced task card rendering with proper tags, importance, and difficulty display
+function createTaskCardEnhanced(task) {
+  const card = document.createElement("div");
+  card.className = "task-card";
+  card.dataset.taskId = task.id;
+  card.draggable = true;
+
+  // Add priority border
+  if (task.importance === 3) {
+    card.classList.add("task-card-priority-high");
+  } else if (task.importance === 2) {
+    card.classList.add("task-card-priority-medium");
+  } else {
+    card.classList.add("task-card-priority-low");
+  }
+
+  // Check if overdue
+  const isOverdue =
+    task.dueDate &&
+    new Date(task.dueDate) < new Date() &&
+    task.status !== "done";
+
+  card.innerHTML = `
+    <div class="task-header">
+      <h3 class="task-title">${task.title}</h3>
+      <span class="task-difficulty ${task.difficulty}">${task.difficulty}</span>
+    </div>
+    
+    ${
+      task.description
+        ? `<p class="task-description">${task.description}</p>`
+        : ""
+    }
+    
+    <div class="task-meta">
+      <span class="task-date">
+        <i class="fas fa-calendar"></i> ${
+          task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No date"
+        }
+      </span>
+      <div class="task-importance" data-importance="${task.importance}">
+        ${task.importance}
+      </div>
+    </div>
+    
+    ${
+      task.tags && task.tags.length > 0
+        ? `
+      <div class="task-tags">
+        ${task.tags
+          .map((tag) => {
+            const tagColor = getTagColor(tag);
+            return `<span class="task-tag" style="background-color: ${tagColor}">${tag}</span>`;
+          })
+          .join("")}
+      </div>
+    `
+        : ""
+    }
+    
+    ${
+      task.checkpoints && task.checkpoints.length > 0
+        ? `
+      <div class="task-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${
+            task.progress || 0
+          }%"></div>
+        </div>
+        <div class="progress-text">${task.progress || 0}% Complete</div>
+      </div>
+    `
+        : ""
+    }
+    
+    ${
+      isOverdue
+        ? '<div class="task-overdue-badge"><i class="fas fa-clock"></i> Overdue</div>'
+        : ""
+    }
+    
+    <div class="task-actions">
+      <button class="btn-success btn-sm" onclick="markTaskComplete('${
+        task.id
+      }')">
+        <i class="fas fa-check"></i>
+      </button>
+      <button class="btn-info btn-sm" onclick="editTask('${task.id}')">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="btn-danger btn-sm" onclick="deleteTaskConfirm('${
+        task.id
+      }')">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `;
+
+  // Add click handler to open task modal
+  card.addEventListener("click", (e) => {
+    if (
+      !e.target.closest("button") &&
+      !card.classList.contains("bulk-select-mode")
+    ) {
+      openTaskModal(task.id);
+    }
+  });
+
+  return card;
+}
+
+// Get tag color from custom tags or default colors
+function getTagColor(tagName) {
+  const customTags = JSON.parse(localStorage.getItem("customTags") || "[]");
+  const customTag = customTags.find((t) => t.name === tagName);
+
+  if (customTag) {
+    return customTag.color;
+  }
+
+  // Default colors for built-in tags
+  const defaultColors = {
+    Work: "#0984e3",
+    Personal: "#00b894",
+    Urgent: "#d63031",
+    Important: "#fdcb6e",
+    "Low Priority": "#74b9ff",
+  };
+
+  return defaultColors[tagName] || "#6c5ce7";
+}
+
+// Add CSS for overdue badge and enhanced styling
+const overdueStyles = `
+<style>
+.task-overdue-badge {
+  background-color: var(--danger);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.task-card-priority-high {
+  border-left: 4px solid var(--danger);
+}
+
+.task-card-priority-medium {
+  border-left: 4px solid var(--warning);
+}
+
+.task-card-priority-low {
+  border-left: 4px solid var(--success);
+}
+
+/* Better tag styling */
+.task-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.task-tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Improved difficulty badges */
+.task-difficulty {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.task-difficulty.easy {
+  background-color: rgba(0, 184, 148, 0.2);
+  color: var(--easy);
+  border: 2px solid var(--easy);
+}
+
+.task-difficulty.medium {
+  background-color: rgba(253, 203, 110, 0.2);
+  color: var(--warning);
+  border: 2px solid var(--warning);
+}
+
+.task-difficulty.hard {
+  background-color: rgba(214, 48, 49, 0.2);
+  color: var(--danger);
+  border: 2px solid var(--danger);
+}
+
+/* Improved importance badge */
+.task-importance {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.task-importance[data-importance="1"] {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+}
+
+.task-importance[data-importance="2"] {
+  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+}
+
+.task-importance[data-importance="3"] {
+  background: linear-gradient(135deg, #ff7675, #d63031);
+  animation: pulse 2s ease-in-out infinite;
+}
+</style>
+`;
+
+// Inject styles
+if (!document.getElementById("task-card-enhanced-styles")) {
+  const styleElement = document.createElement("div");
+  styleElement.id = "task-card-enhanced-styles";
+  styleElement.innerHTML = overdueStyles;
+  document.head.appendChild(styleElement);
+}
+
+// Helper functions for task actions
+function markTaskComplete(taskId) {
+  updateTaskStatus(taskId, "done");
+  showNotificationEnhanced("Task marked as complete!", "success", true);
+}
+
+function editTask(taskId) {
+  const task = tasks.find((t) => t.id === taskId);
+  if (task) {
+    currentEditingTaskId = taskId;
+    openTaskModal(taskId);
+  }
+}
+
+function deleteTaskConfirm(taskId) {
+  if (confirm("Are you sure you want to delete this task?")) {
+    deleteTaskById(taskId);
+    showNotificationEnhanced("Task deleted!", "success", true);
+  }
+}
+
+function openTaskModal(taskId) {
+  const task = tasks.find((t) => t.id === taskId);
+  if (!task) return;
+
+  currentEditingTaskId = taskId;
+
+  // Populate modal fields
+  const modalTaskTitle = document.getElementById("modal-task-title");
+  const modalTaskDescription = document.getElementById(
+    "modal-task-description"
+  );
+  const modalTaskDueDate = document.getElementById("modal-task-due-date");
+  const modalTaskDifficulty = document.getElementById("modal-task-difficulty");
+  const modalTaskTags = document.getElementById("modal-task-tags");
+  const modalTaskReminder = document.getElementById("modal-task-reminder");
+  const modalTaskRecurrence = document.getElementById("modal-task-recurrence");
+  const modalTaskStartTime = document.getElementById("modal-task-start-time");
+  const modalTaskEndTime = document.getElementById("modal-task-end-time");
+
+  if (modalTaskTitle) modalTaskTitle.value = task.title || "";
+  if (modalTaskDescription) modalTaskDescription.value = task.description || "";
+  if (modalTaskDueDate) modalTaskDueDate.value = task.dueDate || "";
+  if (modalTaskDifficulty)
+    modalTaskDifficulty.value = task.difficulty || "easy";
+  if (modalTaskReminder) modalTaskReminder.value = task.reminder || "none";
+  if (modalTaskRecurrence)
+    modalTaskRecurrence.value = task.recurrence || "none";
+  if (modalTaskStartTime) modalTaskStartTime.value = task.startTime || "";
+  if (modalTaskEndTime) modalTaskEndTime.value = task.endTime || "";
+
+  // Set tags
+  if (modalTaskTags && task.tags) {
+    Array.from(modalTaskTags.options).forEach((option) => {
+      option.selected = task.tags.includes(option.value);
+    });
+  }
+
+  // Set importance
+  const importanceOptions = document.querySelectorAll(
+    "#task-modal-overlay .importance-option"
+  );
+  importanceOptions.forEach((option) => {
+    option.classList.remove("selected");
+    if (parseInt(option.dataset.importance) === task.importance) {
+      option.classList.add("selected");
+    }
+  });
+
+  // Populate checkpoints
+  const modalCheckpoints = document.getElementById("modal-checkpoints");
+  if (modalCheckpoints && task.checkpoints) {
+    modalCheckpoints.innerHTML = task.checkpoints
+      .map(
+        (cp, index) => `
+      <div class="checkpoint-item ${cp.completed ? "completed" : ""}">
+        <input type="checkbox" ${cp.completed ? "checked" : ""} 
+               onchange="toggleCheckpoint('${taskId}', ${index})">
+        <span class="checkpoint-text">${cp.text}</span>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  // Open modal
+  const taskModal = document.getElementById("task-modal-overlay");
+  openModalEnhanced(taskModal);
+}
+
+function toggleCheckpoint(taskId, checkpointIndex) {
+  const task = tasks.find((t) => t.id === taskId);
+  if (!task || !task.checkpoints) return;
+
+  task.checkpoints[checkpointIndex].completed =
+    !task.checkpoints[checkpointIndex].completed;
+
+  // Recalculate progress
+  const completedCount = task.checkpoints.filter((cp) => cp.completed).length;
+  task.progress = Math.round((completedCount / task.checkpoints.length) * 100);
+
+  // Update in database
+  if (currentUser) {
+    db.collection("users")
+      .doc(currentUser.uid)
+      .collection("tasks")
+      .doc(taskId)
+      .update({
+        checkpoints: task.checkpoints,
+        progress: task.progress,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .catch((err) => console.error("Error updating checkpoint:", err));
+  } else {
+    saveTasksToLocalStorage();
+    renderTasks();
+    updateStats();
+  }
+}
+
+// Initialize everything on DOM load
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Initializing enhancements...");
+
+  // Load settings
+  loadAppSettings();
+
+  // Setup profile picture
+  setupProfilePicture();
+
+  // Setup bulk actions
+  setupBulkActions();
+
+  // Setup reminders
+  setupReminders();
+
+  // Override save settings button
+  const saveSettingsBtn = document.getElementById("save-settings");
+  if (saveSettingsBtn) {
+    // Remove old listener and add new one
+    const newSaveSettingsBtn = saveSettingsBtn.cloneNode(true);
+    saveSettingsBtn.parentNode.replaceChild(
+      newSaveSettingsBtn,
+      saveSettingsBtn
+    );
+    newSaveSettingsBtn.addEventListener("click", saveSettingsEnhanced);
+  }
+
+  console.log("All enhancements initialized successfully!");
+});
+
+console.log("Task card enhancements loaded!");
+
+// ========== CUSTOM TAGS INPUT SYSTEM ==========
+
+// Store for all tags (common tags + user-created tags)
+let allTags = ["Work", "Personal", "Urgent", "Important", "Low Priority"];
+let currentTaskTags = [];
+let currentModalTags = [];
+
+// Load saved tags from localStorage
+function loadSavedTags() {
+  const savedTags = localStorage.getItem("allTags");
+  if (savedTags) {
+    allTags = JSON.parse(savedTags);
+  }
+}
+
+// Save tags to localStorage
+function saveTags() {
+  localStorage.setItem("allTags", JSON.stringify(allTags));
+}
+
+// Setup tags input for main form
+function setupTagsInput() {
+  const tagsInput = document.getElementById("task-tags-input");
+  const selectedTagsContainer = document.getElementById("selected-tags");
+  const suggestionsContainer = document.getElementById("tags-suggestions");
+
+  if (!tagsInput) return;
+
+  // Show suggestions on focus
+  tagsInput.addEventListener("focus", () => {
+    showSuggestions(suggestionsContainer, currentTaskTags, (tag) => {
+      addTag(tag, selectedTagsContainer, currentTaskTags);
+      tagsInput.value = "";
+      updateSuggestions(suggestionsContainer, currentTaskTags);
+    });
+  });
+
+  // Filter suggestions as user types
+  tagsInput.addEventListener("input", (e) => {
+    const value = e.target.value.trim();
+    if (value) {
+      const filtered = allTags.filter(
+        (tag) =>
+          tag.toLowerCase().includes(value.toLowerCase()) &&
+          !currentTaskTags.includes(tag)
+      );
+      showFilteredSuggestions(
+        suggestionsContainer,
+        filtered,
+        currentTaskTags,
+        (tag) => {
+          addTag(tag, selectedTagsContainer, currentTaskTags);
+          tagsInput.value = "";
+          updateSuggestions(suggestionsContainer, currentTaskTags);
+        }
+      );
+    } else {
+      updateSuggestions(suggestionsContainer, currentTaskTags);
+    }
+  });
+
+  // Add tag on Enter
+  tagsInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const value = tagsInput.value.trim();
+      if (value) {
+        // Add to allTags if it's new
+        if (!allTags.includes(value)) {
+          allTags.push(value);
+          saveTags();
+        }
+        addTag(value, selectedTagsContainer, currentTaskTags);
+        tagsInput.value = "";
+        updateSuggestions(suggestionsContainer, currentTaskTags);
+      }
+    }
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener("click", (e) => {
+    if (
+      !e.target.closest(".tags-input-container") &&
+      !e.target.closest(".tags-suggestions")
+    ) {
+      suggestionsContainer.classList.remove("show");
+    }
+  });
+}
+
+// Setup tags input for modal
+function setupModalTagsInput() {
+  const tagsInput = document.getElementById("modal-task-tags-input");
+  const selectedTagsContainer = document.getElementById("modal-selected-tags");
+  const suggestionsContainer = document.getElementById("modal-tags-suggestions");
+
+  if (!tagsInput) return;
+
+  // Show suggestions on focus
+  tagsInput.addEventListener("focus", () => {
+    showSuggestions(suggestionsContainer, currentModalTags, (tag) => {
+      addTag(tag, selectedTagsContainer, currentModalTags);
+      tagsInput.value = "";
+      updateSuggestions(suggestionsContainer, currentModalTags);
+    });
+  });
+
+  // Filter suggestions as user types
+  tagsInput.addEventListener("input", (e) => {
+    const value = e.target.value.trim();
+    if (value) {
+      const filtered = allTags.filter(
+        (tag) =>
+          tag.toLowerCase().includes(value.toLowerCase()) &&
+          !currentModalTags.includes(tag)
+      );
+      showFilteredSuggestions(
+        suggestionsContainer,
+        filtered,
+        currentModalTags,
+        (tag) => {
+          addTag(tag, selectedTagsContainer, currentModalTags);
+          tagsInput.value = "";
+          updateSuggestions(suggestionsContainer, currentModalTags);
+        }
+      );
+    } else {
+      updateSuggestions(suggestionsContainer, currentModalTags);
+    }
+  });
+
+  // Add tag on Enter
+  tagsInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const value = tagsInput.value.trim();
+      if (value) {
+        // Add to allTags if it's new
+        if (!allTags.includes(value)) {
+          allTags.push(value);
+          saveTags();
+        }
+        addTag(value, selectedTagsContainer, currentModalTags);
+        tagsInput.value = "";
+        updateSuggestions(suggestionsContainer, currentModalTags);
+      }
+    }
+  });
+}
+
+// Add a tag to the selected tags
+function addTag(tag, container, tagsArray) {
+  if (tagsArray.includes(tag)) return;
+
+  tagsArray.push(tag);
+
+  const tagElement = document.createElement("div");
+  tagElement.className = "tag-item-input";
+  tagElement.innerHTML = `
+    <span>${tag}</span>
+    <button class="tag-remove" type="button">×</button>
+  `;
+
+  tagElement.querySelector(".tag-remove").addEventListener("click", () => {
+    const index = tagsArray.indexOf(tag);
+    if (index > -1) {
+      tagsArray.splice(index, 1);
+    }
+    tagElement.remove();
+  });
+
+  container.appendChild(tagElement);
+}
+
+// Show all suggestions
+function showSuggestions(container, currentTags, onSelect) {
+  container.innerHTML = "";
+  const availableTags = allTags.filter((tag) => !currentTags.includes(tag));
+
+  availableTags.forEach((tag) => {
+    const suggestion = document.createElement("div");
+    suggestion.className = "tag-suggestion";
+    suggestion.textContent = tag;
+    suggestion.addEventListener("click", () => onSelect(tag));
+    container.appendChild(suggestion);
+  });
+
+  if (availableTags.length > 0) {
+    container.classList.add("show");
+  }
+}
+
+// Show filtered suggestions
+function showFilteredSuggestions(container, filtered, currentTags, onSelect) {
+  container.innerHTML = "";
+
+  filtered.forEach((tag) => {
+    const suggestion = document.createElement("div");
+    suggestion.className = "tag-suggestion";
+    suggestion.textContent = tag;
+    suggestion.addEventListener("click", () => onSelect(tag));
+    container.appendChild(suggestion);
+  });
+
+  if (filtered.length > 0) {
+    container.classList.add("show");
+  } else {
+    container.classList.remove("show");
+  }
+}
+
+// Update suggestions
+function updateSuggestions(container, currentTags) {
+  const availableTags = allTags.filter((tag) => !currentTags.includes(tag));
+  if (availableTags.length === 0) {
+    container.classList.remove("show");
+  }
+}
+
+// Get current tags from form
+function getCurrentTags() {
+  return [...currentTaskTags];
+}
+
+// Get current tags from modal
+function getCurrentModalTags() {
+  return [...currentModalTags];
+}
+
+// Clear tags in main form
+function clearFormTags() {
+  currentTaskTags = [];
+  const container = document.getElementById("selected-tags");
+  if (container) container.innerHTML = "";
+}
+
+// Set tags in modal
+function setModalTags(tags) {
+  currentModalTags = [];
+  const container = document.getElementById("modal-selected-tags");
+  if (container) {
+    container.innerHTML = "";
+    tags.forEach((tag) => addTag(tag, container, currentModalTags));
+  }
+}
+
+// Initialize tags system
+document.addEventListener("DOMContentLoaded", () => {
+  loadSavedTags();
+  setupTagsInput();
+  setupModalTagsInput();
+  console.log("Custom tags system initialized!");
+});
+
+console.log("Custom tags input system loaded!");
