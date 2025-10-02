@@ -8,8 +8,9 @@
   <meta name="language" content="English" />
   <meta name="description"
     content="SchedulePro - Professional Task Management System for organizing and tracking your tasks efficiently" />
-  <meta name="keywords" content="task management, todo list, productivity, schedule, tasks" />
-  <title>SchedulePro | Task Management System</title>
+  <meta name="keywords"
+    content="task management, todo list, productivity, schedule, tasks, taskschedulepro, task manager, schedulepro ai, schedule pro, schedule ai, task manager ai, manager ai, task ai, taskscheudleproai, taskschedulemanagerai, netlify.com, netlify, ai, taskscheduleai, project management, task organizer, daily planner, work management, team collaboration, task tracker, kanban board, calendar view, deadline tracker, priority tasks, task scheduler, time management, workflow management, agile project management, scrum board, task planning, goal tracking, personal organizer, business productivity, task automation, reminder app, checkpoint tracker, progress tracking, task analytics, work planner, digital planner, smart scheduler, task dashboard, productivity app, work organizer, task list app, schedule planner, efficient task management, online task manager, cloud task manager, free task manager, best task manager, task management software, productivity tool, task management system, professional task manager, advanced task scheduler" />
+  <title>SchedulePro - Task Management System</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
@@ -257,11 +258,11 @@
         </div>
         <div class="form-group">
           <label for="task-tags"><i class="fas fa-tags"></i> Tags</label>
-          <select id="task-tags" multiple>
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Urgent">Urgent</option>
-          </select>
+          <div class="tags-input-container">
+            <div class="selected-tags" id="selected-tags"></div>
+            <input type="text" id="task-tags-input" placeholder="Type tag and press Enter" />
+          </div>
+          <div class="tags-suggestions" id="tags-suggestions"></div>
         </div>
         <div class="form-group">
           <label for="task-reminder"><i class="fas fa-bell"></i> Reminder</label>
@@ -452,11 +453,11 @@
       </div>
       <div class="form-group">
         <label for="modal-task-tags">Tags</label>
-        <select id="modal-task-tags" multiple>
-          <option value="Work">Work</option>
-          <option value="Personal">Personal</option>
-          <option value="Urgent">Urgent</option>
-        </select>
+        <div class="tags-input-container">
+          <div class="selected-tags" id="modal-selected-tags"></div>
+          <input type="text" id="modal-task-tags-input" placeholder="Type tag and press Enter" />
+        </div>
+        <div class="tags-suggestions" id="modal-tags-suggestions"></div>
       </div>
       <div class="form-group">
         <label>Importance</label>
@@ -1207,15 +1208,32 @@
         <div class="settings-option checkbox-option">
           <input type="checkbox" id="reduce-motion" />
           <label for="reduce-motion" class="checkbox-label">
-            <span class="custom-checkbox" style="width: 20px"></span>
+            <span class="custom-checkbox"></span>
             Reduce Motion
           </label>
         </div>
         <div class="settings-option checkbox-option">
           <input type="checkbox" id="disable-animations" />
           <label for="disable-animations" class="checkbox-label">
-            <span class="custom-checkbox" style="width: 20px"></span>
+            <span class="custom-checkbox"></span>
             Disable Animations
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <h3>Notifications</h3>
+        <div class="settings-option checkbox-option">
+          <input type="checkbox" id="reduce-notifications" />
+          <label for="reduce-notifications" class="checkbox-label">
+            <span class="custom-checkbox"></span>
+            Reduce Notifications
+          </label>
+        </div>
+        <div class="settings-option checkbox-option">
+          <input type="checkbox" id="disable-notifications" />
+          <label for="disable-notifications" class="checkbox-label">
+            <span class="custom-checkbox"></span>
+            Disable Notifications
           </label>
         </div>
       </div>
@@ -1243,6 +1261,14 @@
     <div class="task-modal">
       <button class="close-modal" id="close-profile-modal">×</button>
       <h2>User Profile</h2>
+      <div class="profile-picture-container">
+        <img src="https://via.placeholder.com/120" alt="Profile Picture" class="profile-picture" id="profile-picture">
+        <br>
+        <button class="profile-picture-btn" id="change-profile-picture-btn">
+          <i class="fas fa-camera"></i> Change Picture
+        </button>
+        <input type="file" id="profile-picture-upload" class="profile-picture-upload" accept="image/*">
+      </div>
       <div class="form-group">
         <label for="profile-name">Full Name</label>
         <input type="text" id="profile-name" />
