@@ -2,6 +2,6 @@ User-agent: *
 Allow: /
 Sitemap: https://taskschedulepro.netlify.app/sitemap.xml
 
-# Prevent indexing of irrelevant Netlify assets (optional)
 Disallow: /_redirects
 Disallow: /_headers
+
