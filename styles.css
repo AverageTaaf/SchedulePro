@@ -56,7 +56,22 @@
   box-sizing: border-box;
 }
 
-body, input, button, select, textarea, div, span, p, h1, h2, h3, h4, h5, h6, a, label {
+body,
+input,
+button,
+select,
+textarea,
+div,
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a,
+label {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
