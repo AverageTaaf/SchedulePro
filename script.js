@@ -172,6 +172,167 @@ const elements = {
   ),
 };
 
+// Get tag color from custom tags
+function getTagColor(tagName) {
+  const tagConfig = customTags.find((t) => t.name === tagName);
+  return tagConfig ? tagConfig.color : "#6c5ce7";
+}
+
+// Get current selected tags from task form
+function getCurrentTags() {
+  const taskTagsSelect = document.getElementById("task-tags");
+  if (!taskTagsSelect) return [];
+
+  return Array.from(taskTagsSelect.selectedOptions).map(option => option.value);
+}
+
+// Get current selected tags from modal form
+function getCurrentModalTags() {
+  const modalTaskTags = document.getElementById("modal-task-tags");
+  if (!modalTaskTags) return [];
+
+  return Array.from(modalTaskTags.selectedOptions).map(option => option.value);
+}
+
+// Clear form tags selection
+function clearFormTags() {
+  const taskTagsSelect = document.getElementById("task-tags");
+  if (taskTagsSelect) {
+    Array.from(taskTagsSelect.options).forEach(option => {
+      option.selected = false;
+    });
+  }
+}
+
+// List View Rendering
+function renderListView() {
+  const container = document.getElementById("list-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const activeTasks = tasks.filter((task) => !task.archived && !task.deleted);
+
+  if (activeTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-list"></i><p>No tasks found</p></div>';
+    return;
+  }
+
+  activeTasks.forEach((task) => {
+    const item = document.createElement("div");
+    item.className = "list-task-item";
+
+    const priorityClass =
+      task.importance === 3
+        ? "task-card-priority-high"
+        : task.importance === 2
+        ? "task-card-priority-medium"
+        : "task-card-priority-low";
+    item.classList.add(priorityClass);
+
+    item.innerHTML = `
+      <input type="checkbox" class="list-task-checkbox" ${
+        task.status === "done" ? "checked" : ""
+      }>
+      <div class="list-task-content">
+        <div class="list-task-title">${task.title}</div>
+        <div class="list-task-meta">
+          <span class="task-difficulty ${task.difficulty}">${
+      task.difficulty
+    }</span>
+          <span class="task-date">${task.dueDate || "No due date"}</span>
+          <span class="task-importance" data-importance="${task.importance}">${
+      task.importance
+    }</span>
+        </div>
+      </div>
+    `;
+
+    item
+      .querySelector(".list-task-checkbox")
+      .addEventListener("change", (e) => {
+        updateTaskStatus(task.id, e.target.checked ? "done" : "todo");
+      });
+
+    item.addEventListener("click", (e) => {
+      if (e.target.type !== "checkbox") {
+        editTask(task.id);
+      }
+    });
+
+    container.appendChild(item);
+  });
+}
+
+// Grid View Rendering
+function renderGridView() {
+  const container = document.getElementById("grid-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const activeTasks = tasks.filter((task) => !task.archived && !task.deleted);
+
+  if (activeTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-th"></i><p>No tasks found</p></div>';
+    return;
+  }
+
+  activeTasks.forEach((task) => {
+    const card = createTaskElement(task);
+    card.classList.add("grid-task-card");
+    container.appendChild(card);
+  });
+}
+
+// Timeline View Rendering
+function renderTimelineView() {
+  const container = document.getElementById("timeline-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const activeTasks = tasks.filter(
+    (task) => !task.archived && !task.deleted && task.dueDate
+  );
+
+  if (activeTasks.length === 0) {
+    container.innerHTML =
+      '<div class="empty-state"><i class="fas fa-stream"></i><p>No tasks with due dates found</p></div>';
+    return;
+  }
+
+  // Sort by due date
+  activeTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  activeTasks.forEach((task) => {
+    const item = document.createElement("div");
+    item.className = "timeline-item";
+
+    item.innerHTML = `
+      <div class="timeline-date">${new Date(task.dueDate).toLocaleDateString(
+        "en-US",
+        { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+      )}</div>
+      <h3 class="task-title">${task.title}</h3>
+      <p class="task-description">${task.description || "No description"}</p>
+      <div class="task-meta">
+        <span class="task-difficulty ${task.difficulty}">${
+      task.difficulty
+    }</span>
+        <span class="task-importance" data-importance="${task.importance}">${
+      task.importance
+    }</span>
+      </div>
+    `;
+
+    item.addEventListener("click", () => editTask(task.id));
+    container.appendChild(item);
+  });
+}
+
 // Initialize the application
 function init() {
   console.log("🚀 Initializing SchedulePro App...");
@@ -274,10 +435,6 @@ function setupEventListeners() {
   elements.archiveTaskBtn.addEventListener("click", archiveTask);
 
   // UI controls
-  if (elements.modeToggle) {
-    elements.modeToggle.addEventListener("click", toggleDarkMode);
-  }
-
   if (elements.viewToggle) {
     elements.viewToggle.addEventListener("click", toggleView);
   }
@@ -1240,7 +1397,11 @@ function createTaskElement(task) {
     task.importance
   }</div>
     </div>
-    ${isOverdue ? '<div class="task-overdue-badge"><i class="fas fa-clock"></i> Overdue</div>' : ""}
+    ${
+      isOverdue
+        ? '<div class="task-overdue-badge"><i class="fas fa-clock"></i> Overdue</div>'
+        : ""
+    }
     <div class="task-actions">
       <button class="btn-info btn-sm edit-task" data-id="${task.id}">
         <i class="fas fa-edit"></i>
@@ -5019,7 +5180,9 @@ function setupTagsInput() {
 function setupModalTagsInput() {
   const tagsInput = document.getElementById("modal-task-tags-input");
   const selectedTagsContainer = document.getElementById("modal-selected-tags");
-  const suggestionsContainer = document.getElementById("modal-tags-suggestions");
+  const suggestionsContainer = document.getElementById(
+    "modal-tags-suggestions"
+  );
 
   if (!tagsInput) return;
 
