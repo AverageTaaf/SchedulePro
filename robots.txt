@@ -1,19 +1,33 @@
 User-agent: *
-Allow: /
+Allow: /$
+Allow: /index.html
+Allow: /styles/*.css$
+Allow: /scripts/*.js$
+Allow: /images/*.png$
+Allow: /images/*.jpg$
+Allow: /images/*.svg$
+
 Disallow: /_redirects
 Disallow: /_headers
 Disallow: /admin/
 Disallow: /api/
+Disallow: /private/
+Disallow: /account/
+Disallow: /settings/
+Disallow: /billing/
 Disallow: /*.json$
 Disallow: /*?*
+Disallow: /*.php$
+Disallow: /*.log$
+Disallow: /*.sql$
+Disallow: /*.env$
 
-# Sitemap location
+Crawl-delay: 10
+
 Sitemap: https://taskschedulepro.netlify.app/sitemap.xml
 
-# Crawl delay for polite crawling
 Crawl-delay: 1
 
-# Specific rules for major search engines
 User-agent: Googlebot
 Allow: /
 Disallow: /_redirects
