@@ -1,7 +1,25 @@
 User-agent: *
 Allow: /
+Disallow: /_redirects
+Disallow: /_headers
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*?*
+
+# Sitemap location
 Sitemap: https://taskschedulepro.netlify.app/sitemap.xml
 
+# Crawl delay for polite crawling
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
 Disallow: /_redirects
 Disallow: /_headers
 
+User-agent: Bingbot
+Allow: /
+Disallow: /_redirects
+Disallow: /_headers
