@@ -1,11 +1,5 @@
 User-agent: *
-Allow: /$
-Allow: /index.html
-Allow: /styles/*.css$
-Allow: /scripts/*.js$
-Allow: /images/*.png$
-Allow: /images/*.jpg$
-Allow: /images/*.svg$
+Allow: /
 
 Disallow: /_redirects
 Disallow: /_headers
@@ -15,25 +9,5 @@ Disallow: /private/
 Disallow: /account/
 Disallow: /settings/
 Disallow: /billing/
-Disallow: /*.json$
-Disallow: /*?*
-Disallow: /*.php$
-Disallow: /*.log$
-Disallow: /*.sql$
-Disallow: /*.env$
-
-Crawl-delay: 10
 
 Sitemap: https://taskschedulepro.netlify.app/sitemap.xml
-
-Crawl-delay: 1
-
-User-agent: Googlebot
-Allow: /
-Disallow: /_redirects
-Disallow: /_headers
-
-User-agent: Bingbot
-Allow: /
-Disallow: /_redirects
-Disallow: /_headers
