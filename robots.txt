@@ -31,5 +31,6 @@ Disallow:
 User-agent: *
 Disallow: 
 Disallow: /cgi-bin/
-Sitemap: https://taskschedulepro.netlify.app/sitemap.xml
+Sitemap: https://schedulemaster-ai.netlify.app/sitemap.xml
+
 
