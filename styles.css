@@ -3173,8 +3173,15 @@ button:hover {
 }
 
 .mode-toggle:hover {
+  transform: rotate(15deg) scale(1.1);
+}
 
 /* 404 Page Styles */
+body.error-page {
+  background: var(--bg);
+  color: var(--text);
+}
+
 .error-container {
   display: flex;
   flex-direction: column;
@@ -3183,8 +3190,6 @@ button:hover {
   min-height: 100vh;
   padding: 2rem;
   text-align: center;
-  background: var(--bg);
-  color: var(--text);
 }
 
 .error-content {
@@ -3378,8 +3383,6 @@ button:hover {
 @keyframes twinkle {
   from { opacity: 0.3; }
   to { opacity: 0.7; }
-}
-  transform: rotate(15deg) scale(1.1);
 }
 
 .modal-overlay {
