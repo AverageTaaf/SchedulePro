@@ -1,0 +1,10 @@
+/old-path /new-path 301
+/blog/:year/:month/:title /posts/:title 301
+/_ /index.html 200
+http://schedulemaster-ai.netlify.app/_ https://schedulemaster-ai.netlify.app/:splat 301!
+https://www.yourdomain.com/_ https://yourdomain.com/:splat 301!
+/_ /404.html 404
+/ /en 302 Country=us
+/fr/_ /fr/ 200 Language=fr
+/de/_ /de/ 200 Language=de
+/old-url /new-url 301! X-From=Netlify
