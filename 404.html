@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | SchedulePro</title>
+    <meta name="description"
+        content="The page you're looking for doesn't exist or has been moved. Return to SchedulePro's task management system.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://taskschedulepro.netlify.app/" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "404 - Page Not Found",
+        "description": "The page you're looking for doesn't exist or has been moved. Return to SchedulePro's task management system.",
+        "url": "https://taskschedulepro.netlify.app/404.html",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://taskschedulepro.netlify.app/"
+        }
+    }
+    </script>
+</head>
+
+<body class="error-page">
+    <div class="error-container">
+        <div class="error-content">
+            <h1 class="error-code">404</h1>
+            <h2 class="error-title">Oops! Page Not Found</h2>
+            <p class="error-message">The page you are looking for might have been removed, had its name changed, or is
+                temporarily unavailable.</p>
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">Go to Homepage</a>
+                <a href="#" class="btn btn-secondary" onclick="history.back(); return false;">Go Back</a>
+            </div>
+        </div>
+        <div class="error-illustration" aria-hidden="true">
+            <div class="astronaut">
+                <div class="helmet"></div>
+                <div class="face"></div>
+                <div class="body"></div>
+            </div>
+            <div class="stars"></div>
+        </div>
+    </div>
+    <script>
+        // Add error tracking
+        if (window.ga) {
+            ga('send', 'event', 'Error', '404', 'Page not found: ' + document.location.pathname);
+        }
+    </script>
+</body>
+
+</html>

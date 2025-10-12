@@ -1,0 +1,162 @@
+/* Component-specific styles */
+
+/* Hidden elements */
+.hidden {
+  display: none !important;
+}
+
+/* Advanced search panel */
+.advanced-search-content {
+  display: none;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.advanced-search-content.visible {
+  display: block;
+}
+
+/* View containers */
+.list-view,
+.grid-view,
+.timeline-view,
+.calendar-view {
+  margin-bottom: 2rem;
+  display: none;
+}
+
+.list-view.visible,
+.grid-view.visible,
+.timeline-view.visible,
+.calendar-view.visible {
+  display: block;
+}
+
+/* Onboarding modal */
+#onboarding-modal {
+  z-index: 1000;
+}
+
+.onboarding-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.onboarding-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.onboarding-dot.active {
+  background-color: var(--primary-color);
+}
+
+/* Confirmation dialog */
+.confirmation-dialog {
+  max-width: 400px;
+  width: 90%;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 1000;
+  max-width: 250px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tooltip.visible {
+  opacity: 1;
+}
+
+.tooltip-content {
+  position: relative;
+  z-index: 2;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+}
+
+.tooltip.top::after {
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: rgba(0, 0, 0, 0.8);
+  border-bottom: none;
+}
+
+.tooltip.bottom::after {
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: rgba(0, 0, 0, 0.8);
+  border-top: none;
+}
+
+.tooltip.left::after {
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: rgba(0, 0, 0, 0.8);
+  border-right: none;
+}
+
+.tooltip.right::after {
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: rgba(0, 0, 0, 0.8);
+  border-left: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .onboarding-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .onboarding-dots {
+    order: -1;
+  }
+}
