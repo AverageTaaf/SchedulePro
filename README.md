@@ -1,275 +1,252 @@
-# Weatherify - Smart Weather Forecasting
-![Weatherify](https://img.shields.io/badge/version-2.00-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+# SchedulePro - Task Management System
+
+A professional, feature-rich task management web application with Firebase integration, multiple view layouts, and comprehensive productivity analytics.
+
+![Version](https://img.shields.io/badge/version-2.00-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
 
-A modern, feature-rich weather forecasting web application that provides comprehensive weather information with an intuitive and beautiful user interface.
+## 🚀 Features
 
-## 🌟 Features
-### Core Weather Features
+### Core Functionality
+- **Task Management**: Create, edit, delete, and organize tasks with detailed metadata
+- **Multiple View Layouts**: Kanban, List, Grid, Timeline, and Calendar views
+- **Drag & Drop**: Intuitive task movement between status columns
+- **Firebase Integration**: Real-time cloud sync and authentication
+- **User Authentication**: Email/password and Google OAuth support
+- **Offline Support**: Local storage fallback when not authenticated
 
-- **Real-time Weather Data** - Current weather conditions for any location worldwide
-- **5-Day Forecast** - Detailed weather predictions for the next 5 days
-- **24-Hour Forecast** - Hourly weather breakdown with precipitation probability
-- **Location Detection** - Automatic geolocation with permission request
-- **City Search** - Smart autocomplete search for cities worldwide
-- **Capital Cities Dropdown** - Quick access to all world capital cities
+### Task Features
+- **Rich Task Details**:
+  - Title and description
+  - Due dates and time ranges
+  - Difficulty levels (Easy, Medium, Hard)
+  - Importance ratings (Low, Medium, High)
+  - Custom tags and categories
+  - Checkpoints/sub-tasks with progress tracking
+  - Recurring tasks (Daily, Weekly, Monthly)
+  - Reminder notifications
 
-### Advanced Features
+### Organization & Filtering
+- **Advanced Search**: Real-time search across task titles and descriptions
+- **Multi-criteria Filtering**: Filter by date range, status, difficulty, and importance
+- **Tag Management**: Create and manage custom tags with color coding
+- **Sorting Options**: Sort by date, importance, progress, or due date
+- **Bulk Actions**: Select and modify multiple tasks simultaneously
 
-- **UV Index Monitoring** - Real-time UV index with safety recommendations
-- **Air Quality Index (AQI)** - Air pollution levels with health advisories
-- **Interactive Map** - Leaflet.js powered location map with weather overlay
-- **Weather Insights** - AI-powered analysis and recommendations
-- **Moon Phase Tracker** - Current moon phase information
-- **Sunrise/Sunset Times** - Daily solar event times
-- **Weather Alerts** - Extreme weather warnings and notifications
-- **Activity Recommendations** - Suggested activities based on weather conditions
+### Views & Visualization
+- **Kanban Board**: Three-column workflow (To-Do, In Progress, Done)
+- **List View**: Compact linear task list
+- **Grid View**: Card-based responsive grid layout
+- **Timeline View**: Chronological task timeline
+- **Calendar View**: Monthly calendar with task visualization
+- **Density Modes**: Relaxed or Compact spacing options
 
-### Data Visualization
+### Analytics & Insights
+- **Dashboard Statistics**: Total tasks, completed, in progress, overdue counts
+- **Progress Tracking**: Overall completion percentage
+- **Visual Charts**: 
+  - Task completion trends
+  - Status distribution
+  - Weekly productivity metrics
 
-- **Temperature Trend Chart** - 24-hour temperature visualization
-- **Humidity Chart** - Humidity levels over time
-- **Wind Speed Chart** - Wind patterns and trends
-- **Precipitation Bars** - Rain probability visualization
-- **Wind Compass** - Visual wind direction indicator
-- **Pressure Trend** - Atmospheric pressure monitoring
-
-### User Experience
-
-- **5 Theme Options** - Light, Dark, Blue, Pink, and Orange themes
-- **Saved Locations** - Save up to 10 favorite locations
-- **Unit Customization** - Toggle between Celsius/Fahrenheit/Kelvin, km/h/mph/m/s, and pressure units
-- **Responsive Design** - Optimized for desktop, tablet, and mobile devices
-- **Smooth Animations** - Polished transitions and loading states
-- **Browser Compatibility** - Works on all modern browsers including Opera GX
-
-## 🚀 Live Demo
-
-[View Live Demo](#) _(Add your deployment URL here)_
-
-## 📸 Screenshots
-
-### Main Dashboard
-
-![Main Dashboard](screenshots/dashboard.png)
-
-### Weather Insights
-
-![Weather Insights](screenshots/insights.png)
-
-### Interactive Map
-
-![Interactive Map](screenshots/map.png)
+### UI/UX Features
+- **6 Theme Options**: Light, Dark, Blue, Green, Pink, Orange
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Smooth Animations**: Polished transitions and interactions
+- **Keyboard Shortcuts**: Quick access to common actions
+- **Collapsible Sections**: Minimize/maximize form and analytics
+- **Archive System**: Archive completed tasks for later reference
+- **Trash/Restore**: Soft delete with recovery option
 
 ## 🛠️ Technologies Used
 
-- **HTML5** - Semantic markup structure
-- **CSS3** - Modern styling with CSS variables and animations
-- **JavaScript (ES6+)** - Core functionality and API integration
-- **Firebase** - Backend services and data storage
-- **OpenWeatherMap API** - Weather data provider
-- **Chart.js** - Data visualization library
-- **Leaflet.js** - Interactive mapping library
-- **Font Awesome** - Icon library
-- **Google Fonts (Poppins)** - Typography
+- **HTML5**: Modern semantic markup
+- **CSS3**: Advanced styling and animations
+- **JavaScript**: ES6+ for application logic
+- **Firebase**: Cloud backend (Firestore, Authentication)
+- **Charts**: Chart.js
+- **Icons**: Font Awesome 6.4.0
+- **Storage**: LocalStorage (offline fallback)
 
-## 📋 Prerequisites
+## 📄 License
 
-- Modern web browser (Chrome, Firefox, Safari, Edge, Opera GX)
-- Internet connection for API calls
-- OpenWeatherMap API key (free tier available)
+MIT License - Free to use, modify, and distribute
 
-## 🔧 Installation
+## 📦 Installation
 
-1. **Clone the repository**
+### Prerequisites
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Internet connection (for Firebase features)
 
+### Setup
+
+1. **Clone or download the repository**
    ```bash
-   git clone https://github.com/AverageTaaf/weatherify.git
-   cd weatherify
+   git clone https://github.com/AverageTaaf/schedulepro.git
+   cd schedulepro
    ```
 
-2. **Get your API key**
-
-   - Visit [OpenWeatherMap](https://openweathermap.org/api)
-   - Sign up for a free account
-   - Generate an API key
-
-3. **Configure the API key**
-
-   - Open `script.js`
-   - Replace the API key on line 28:
-     ```javascript
-     const API_KEY = "your_api_key_here";
-     ```
-
-4. **Launch the application**
-
-   - Open `index.html` in your web browser
+2. **Open the application**
+   - Simply open `index.html` in your web browser
    - Or use a local server:
-
      ```bash
      # Using Python
      python -m http.server 8000
-
+     
      # Using Node.js
      npx http-server
      ```
 
-5. **Access the app**
-   - Navigate to `http://localhost:8000` in your browser
+3. **Access the application**
+   - Navigate to `http://localhost:8000` (if using local server)
+   - Or directly open `index.html` in your browser
+
+### Firebase Configuration (Optional)
+
+The app comes pre-configured with Firebase. To use your own Firebase project:
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Firestore Database and Authentication
+3. Update the Firebase configuration in `script.js`:
+   ```javascript
+   const firebaseConfig = {
+     apiKey: "YOUR_API_KEY",
+     authDomain: "YOUR_AUTH_DOMAIN",
+     projectId: "YOUR_PROJECT_ID",
+     // ... other config
+   };
+   ```
 
 ## 📖 Usage Guide
 
-### Searching for Weather
+### Getting Started
 
-1. **By City Name**: Type a city name in the search bar
-2. **Autocomplete**: Select from suggested cities as you type
-3. **Capital Cities**: Use the dropdown to select any world capital
-4. **Current Location**: Click the location icon to use your GPS coordinates
+1. **First Launch**: Complete the onboarding tutorial (if enabled)
+2. **Choose Theme**: Select your preferred color theme from the header
+3. **Select View**: Pick your favorite layout (Kanban recommended for beginners)
+4. **Create Account** (Optional): Sign up for cloud sync across devices
 
-### Saving Locations
+### Creating Tasks
 
-1. Search for a location
-2. Click the "+" button in the Saved Locations bar
-3. Access saved locations by clicking on them
-4. Remove locations using the "×" button
+1. Fill in the task form with:
+   - **Title** (required)
+   - **Description** (optional)
+   - **Due Date & Time**
+   - **Difficulty Level**
+   - **Importance Rating**
+   - **Checkpoints** (one per line)
+   - **Tags** for organization
+   - **Reminder** settings
 
-### Customizing Settings
+2. Click **Add Task** button
 
-1. Click the settings icon (⚙️)
-2. Choose your preferred units:
-   - Temperature: Celsius, Fahrenheit, or Kelvin
-   - Wind Speed: km/h, mph, or m/s
-   - Pressure: hPa, inHg, or mmHg
-3. Enable weather alerts (requires browser notification permission)
+### Managing Tasks
 
-### Changing Themes
+- **Edit**: Click on any task card to open the edit modal
+- **Move**: Drag tasks between columns (Kanban view)
+- **Complete**: Click the complete button or move to "Done" column
+- **Delete**: Click delete button (moves to trash)
+- **Archive**: Archive completed tasks for cleanup
 
-- Click any theme icon in the header:
-  - ☀️ Light Theme
-  - 🌙 Dark Theme
-  - 💧 Blue Theme
-  - ❤️ Pink Theme
-  - 🔥 Orange Theme
+### Keyboard Shortcuts
 
-## 🌐 API Reference
+- `Ctrl + F`: Focus search bar
+- `Ctrl + N`: New task (focus form)
+- `Ctrl + S`: Save current task
+- `Esc`: Close modal/cancel action
+- `Ctrl + E`: Export tasks
+- `Ctrl + H`: Open help modal
 
-### OpenWeatherMap APIs Used
+### Advanced Features
 
-- **Current Weather API** - Real-time weather data
-- **5-Day Forecast API** - Weather predictions
-- **Geocoding API** - Location search and coordinates
-- **UV Index API** - UV radiation levels
-- **Air Pollution API** - Air quality data
+#### Bulk Actions
+1. Click "Bulk Select" button
+2. Check tasks you want to modify
+3. Click "Bulk Actions" and choose operation
 
-### API Endpoints
+#### Advanced Filters
+1. Click "Advanced Filters" button
+2. Set date ranges, status, difficulty, importance
+3. Click "Apply Filters"
 
-```javascript
-// Current Weather
-https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}
+#### Export/Import
+- **Export**: Download tasks as JSON file
+- **Import**: Upload previously exported JSON file
 
-// 5-Day Forecast
-https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={API_KEY}
+## 🎨 Themes
 
-// UV Index
-https://api.openweathermap.org/data/2.5/uvi?lat={lat}&lon={lon}&appid={API_KEY}
+Choose from 6 beautiful themes:
+- **Light**: Clean, bright interface
+- **Dark**: Easy on the eyes for nighttime
+- **Blue**: Ocean-inspired calming colors
+- **Green**: Nature-themed refreshing palette
+- **Pink**: Vibrant and energetic
+- **Orange**: Warm and motivating
 
-// Air Quality
-https://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}
-```
+## 📱 Browser Support
 
-## 🎨 Customization
+- Chrome/Edge: ✅ Fully supported
+- Firefox: ✅ Fully supported
+- Safari: ✅ Fully supported
+- Opera: ✅ Fully supported
+- IE11: ❌ Not supported
 
-### Adding New Themes
+## 🔒 Privacy & Security
 
-Edit the CSS variables in `styles.css`:
-
-```css
-body[data-theme="your-theme"] {
-  --primary-color: #your-color;
-  --secondary-color: #your-color;
-  --accent-color: #your-color;
-  --text-color: #your-color;
-  --bg-color: #your-color;
-  --card-bg: #your-color;
-}
-```
-
-### Modifying Weather Insights
-
-Edit the `displayWeatherInsights()` function in `script.js` to add custom insights.
+- All data stored in Firebase is associated with your user account
+- Passwords are securely hashed by Firebase Authentication
+- Local storage is used only when not authenticated
+- No third-party tracking or analytics
 
 ## 🐛 Known Issues
 
-- Map may take a few seconds to load on slower connections
-- Some browsers may block geolocation on non-HTTPS sites
-- API rate limits apply (60 calls/minute for free tier)
+- Calendar view may not display correctly on very small screens (<320px)
+- Drag and drop not available on touch devices in some browsers
+- Chart animations may lag on older devices
 
-## 🔮 Future Enhancements
+## 🚧 Roadmap
 
-- [ ] Weather radar overlay
-- [ ] Historical weather data
-- [ ] Weather comparison between cities
-- [ ] Export weather reports as PDF
-- [ ] Multi-language support
-- [ ] Weather widgets for embedding
-- [ ] Progressive Web App (PWA) support
-- [ ] Offline mode with cached data
+- [ ] Mobile app (React Native)
+- [ ] Team collaboration features
+- [ ] Task templates
+- [ ] Email notifications
+- [ ] Integration with Google Calendar
+- [ ] Dark mode auto-switch based on time
+- [ ] Task dependencies
+- [ ] Gantt chart view
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
+## 👤 Author
 
 **Taafeef Bin Montaquim**
-
 - Email: montaquim.tbm@gmail.com
 - GitHub: [@AverageTaaf](https://github.com/AverageTaaf)
-- Portfolio: [Your Portfolio URL]
 
 ## 🙏 Acknowledgments
 
-- [OpenWeatherMap](https://openweathermap.org/) for weather data API
-- [Chart.js](https://www.chartjs.org/) for beautiful charts
-- [Leaflet.js](https://leafletjs.com/) for interactive maps
-- [Font Awesome](https://fontawesome.com/) for icons
-- [Google Fonts](https://fonts.google.com/) for Poppins font
+- Font Awesome for the icon library
+- Chart.js for beautiful charts
+- Firebase for backend infrastructure
+- All contributors and users of SchedulePro
 
 ## 📞 Support
 
-If you encounter any issues or have questions:
-
-- Open an issue on [GitHub Issues](https://github.com/AverageTaaf/weatherify/issues)
-- Email: montaquim.tbm@gmail.com
-
-## ⭐ Show Your Support
-
-Give a ⭐️ if this project helped you!
+For support, email montaquim.tbm@gmail.com or open an issue on GitHub.
 
 ---
 
-**Other Projects by Taafeef Bin Montaquim:**
-
-- [Type Master Pro](https://typemaster-ai.netlify.app/) - Advanced typing practice application
-- [Task Schedule Pro](https://taskschedulepro.netlify.app/) - Professional task management tool
-
----
-
-_Made with ❤️ by Taafeef Bin Montaquim_
+**Made with ❤️ by Taafeef Bin Montaquim**

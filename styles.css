@@ -3186,43 +3186,38 @@ body.error-page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
   text-align: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
 .error-content {
-  max-width: 600px;
-  padding: 2rem;
-  background: var(--card);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-card);
-  margin: 2rem 0;
-  animation: fadeInUp 0.6s ease-out;
+  margin-bottom: 2.5rem;
+  max-width: 42rem;
 }
 
 .error-code {
-  font-size: 8rem;
-  font-weight: 800;
+  font-size: clamp(4rem, 15vw, 8rem);
+  font-weight: 700;
   margin: 0;
-  background: linear-gradient(45deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
   line-height: 1;
+  color: var(--primary-color);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .error-title {
-  font-size: 2.5rem;
-  margin: 1rem 0;
-  color: var(--primary);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  margin: 1rem 0 0.5rem;
+  color: var(--heading-color);
+  font-weight: 700;
 }
 
 .error-message {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  color: var(--muted);
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  margin: 1rem auto 2rem;
+  color: var(--text-muted);
+  max-width: 40rem;
   line-height: 1.6;
 }
 
@@ -3231,76 +3226,215 @@ body.error-page {
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
+  margin: 2rem 0;
 }
 
-.btn {
-  padding: 0.8rem 1.8rem;
-  border-radius: 50px;
+.error-actions .btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease-in-out;
+  will-change: transform, box-shadow;
+  font-size: 1rem;
+  border: 2px solid transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid transparent;
+  min-width: 160px;
 }
 
-.btn-primary {
-  background: var(--primary);
+.error-actions .btn-primary {
+  background: var(--primary-color);
   color: white;
+  border-color: var(--primary-color);
 }
 
-.btn-primary:hover {
+.error-actions .btn-primary:hover,
+.error-actions .btn-primary:focus {
   background: var(--primary-dark);
+  border-color: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  outline: none;
 }
 
-.btn-secondary {
+.error-actions .btn-secondary {
   background: transparent;
-  color: var(--primary);
-  border-color: var(--primary);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
-.btn-secondary:hover {
-  background: rgba(108, 92, 231, 0.1);
+.error-actions .btn-secondary:hover,
+.error-actions .btn-secondary:focus {
+  background: rgba(var(--primary-rgb, 0, 100, 200), 0.1);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  outline: none;
 }
 
-/* Animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+.suggested-links {
+  margin-top: 2rem;
+  text-align: left;
+  max-width: 24rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.suggested-links p {
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.suggested-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.suggested-links a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.suggested-links a:hover,
+.suggested-links a:focus {
+  background: rgba(var(--primary-rgb, 0, 100, 200), 0.1);
+  color: var(--primary-dark);
+  text-decoration: underline;
+  outline: none;
+}
+
+.error-illustration {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, 400px);
+  aspect-ratio: 4/3;
+  margin: 2rem auto 0;
+}
+
+.astronaut {
+  position: absolute;
+  width: 60%;
+  max-width: 200px;
+  aspect-ratio: 1;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.helmet {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  background: #e0e0e0;
+  border-radius: 50%;
+  top: 10%;
+  left: 20%;
+  border: 0.5rem solid #b0b0b0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.face {
+  position: absolute;
+  width: 25%;
+  height: 12%;
+  background: #333;
+  border-radius: 0.5rem 0.5rem 0 0;
+  top: 35%;
+  left: 37.5%;
+}
+
+.body {
+  position: absolute;
+  width: 50%;
+  height: 60%;
+  background: #e0e0e0;
+  border-radius: 2.5rem 2.5rem 1rem 1rem;
+  top: 60%;
+  left: 25%;
+  border: 0.5rem solid #b0b0b0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="30" r="1" fill="%23fff"/><circle cx="50" cy="10" r="1" fill="%23fff"/><circle cx="80" cy="40" r="1" fill="%23fff"/><circle cx="30" cy="70" r="1" fill="%23fff"/><circle cx="70" cy="80" r="1" fill="%23fff"/></svg>');
+  background-size: 100px 100px;
+  opacity: 0.5;
+  animation: twinkle 3s infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .error-actions .btn,
+  .suggested-links a {
+    transition: none;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .stars {
+    animation: none;
   }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .error-code {
-    font-size: 6rem;
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .helmet,
+  .body {
+    background: #a0a0a0;
+    border-color: #808080;
   }
   
-  .error-title {
-    font-size: 2rem;
+  .face {
+    background: #111;
   }
   
-  .error-message {
-    font-size: 1rem;
+  .stars {
+    filter: brightness(1.5);
+  }
+}
+
+/* Print styles */
+@media print {
+  .error-actions,
+  .error-illustration {
+    display: none;
   }
   
-  .error-actions {
-    flex-direction: column;
-    gap: 0.8rem;
+  .error-container {
+    padding: 0;
   }
   
-  .btn {
-    width: 100%;
+  .error-content {
+    margin: 0;
   }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  .error-actions .btn {
+    border-width: 2px;
+  }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Astronaut Animation */
